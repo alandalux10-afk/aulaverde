@@ -1,0 +1,19 @@
+{
+  "name": "aulaverde",
+  "version": "1.0.0",
+  "description": "TPV Tienda Ecológica Aula Verde",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^33.4.11"
+  },
+  "dependencies": {
+    "sql.js": "^1.14.1"
+  }
+}

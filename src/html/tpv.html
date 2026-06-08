@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Aula Verde TPV</title>
+  <link rel="stylesheet" href="../css/tpv.css">
+</head>
+<body>
+
+  <!-- CABECERA -->
+  <header id="cabecera">
+    <div id="info-tienda">
+      <span id="nombre-tienda">Aula Verde</span>
+    </div>
+    <div id="info-venta">
+      <span id="numero-documento">TICKET-0001</span>
+      <span id="fecha-hora"></span>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main id="contenido">
+
+    <!-- PANEL IZQUIERDO -->
+    <aside id="panel-izquierdo">
+      <button class="btn-menu" id="btn-consultas">📋 Consultas</button>
+      <button class="btn-menu" id="btn-resumen">📊 Resumen</button>
+      <button class="btn-menu" id="btn-impresora">🖨️ Impresora</button>
+      <button class="btn-menu" id="btn-visor">🖥️ Visor</button>
+      <button class="btn-menu" id="btn-balanza">⚖️ Balanza</button>
+    </aside>
+
+    <!-- PANEL CENTRAL -->
+    <section id="panel-central">
+
+      <!-- BUSCADOR -->
+      <div id="buscador">
+        <input type="text" id="input-busqueda" placeholder="Buscar producto por nombre o código...">
+        <div id="resultados-busqueda"></div>
+      </div>
+
+      <!-- TABLA DE LÍNEAS -->
+      <div id="contenedor-tabla">
+        <table id="tabla-lineas">
+          <thead>
+            <tr>
+              <th>Nº</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Dto %</th>
+              <th>IVA %</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-tabla">
+            <!-- Las líneas de venta aparecerán aquí -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TOTALES -->
+      <div id="totales">
+        <div class="total-fila">
+          <span>Base imponible:</span>
+          <span id="total-base">0,00 €</span>
+        </div>
+        <div class="total-fila">
+          <span>IVA:</span>
+          <span id="total-iva">0,00 €</span>
+        </div>
+        <div class="total-fila">
+          <span>Descuentos:</span>
+          <span id="total-descuento">0,00 €</span>
+        </div>
+        <div class="total-fila total-final">
+          <span>TOTAL:</span>
+          <span id="total-venta">0,00 €</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PANEL DERECHO -->
+    <aside id="panel-derecho">
+
+      <!-- MENÚ SUPERIOR DERECHO -->
+      <div id="menu-derecho-superior">
+        <button class="btn-accion" id="btn-nueva-venta">Nueva venta</button>
+        <button class="btn-accion" id="btn-crear-linea">Crear línea (F1)</button>
+        <button class="btn-accion" id="btn-opciones-linea">Opciones línea</button>
+        <button class="btn-accion" id="btn-eliminar-linea">Eliminar línea</button>
+        <button class="btn-accion btn-cobrar" id="btn-cobrar">COBRAR (Alt+Enter)</button>
+      </div>
+
+      <!-- CALCULADORA -->
+      <div id="calculadora">
+        <div id="display-calc"></div>
+        <div id="botones-calc">
+          <button class="btn-calc btn-accion-calc" data-accion="ud">Ud.</button>
+          <button class="btn-calc btn-accion-calc" data-accion="precio">€</button>
+          <button class="btn-calc btn-accion-calc" data-accion="dto">Dto.</button>
+          <button class="btn-calc btn-borrar" data-accion="borrar">←</button>
+
+          <button class="btn-calc" data-num="7">7</button>
+          <button class="btn-calc" data-num="8">8</button>
+          <button class="btn-calc" data-num="9">9</button>
+          <button class="btn-calc btn-borrar" data-accion="limpiar">C</button>
+
+          <button class="btn-calc" data-num="4">4</button>
+          <button class="btn-calc" data-num="5">5</button>
+          <button class="btn-calc" data-num="6">6</button>
+          <button class="btn-calc btn-accion-calc" data-accion="sumar">+</button>
+
+          <button class="btn-calc" data-num="1">1</button>
+          <button class="btn-calc" data-num="2">2</button>
+          <button class="btn-calc" data-num="3">3</button>
+          <button class="btn-calc btn-accion-calc" data-accion="restar">-</button>
+
+          <button class="btn-calc" data-num="0">0</button>
+          <button class="btn-calc" data-num=".">.</button>
+          <button class="btn-calc btn-enter" data-accion="enter" colspan="2">↵</button>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script src="../js/tpv.js"></script>
+</body>
+</html>
