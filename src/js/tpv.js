@@ -156,7 +156,57 @@ function aplicarCalculadora(accion) {
   document.getElementById('display-calc').textContent = 
     accion !== 'enter' ? `[${modoCalc}] ${displayCalc}` : displayCalc
 }
+// Buscar productos en la base de datos
+document.getElementById('input-busqueda').addEventListener('input', async function() {
+  const texto = this.value.trim()
+  const contenedor = document.getElementById('resultados-busqueda')
 
+  if (texto.length < 2) {
+    contenedor.style.display = 'none'
+    contenedor.innerHTML = ''
+    return
+  }
+
+  const productos = await ipcRenderer.invoke('buscar-productos', texto)
+
+  if (productos.length === 0) {
+    contenedor.style.display = 'none'
+    return
+  }
+
+  contenedor.innerHTML = ''
+  productos.forEach(p => {
+    const div = document.createElement('div')
+    div.className = 'resultado-item'
+    div.textContent = `${p.codigo} · ${p.nombre} · ${p.precio_venta.toFixed(2).replace('.', ',')} €`
+    div.addEventListener('click', () => {
+      agregarProductoALinea(p)
+      contenedor.style.display = 'none'
+      contenedor.innerHTML = ''
+      document.getElementById('input-busqueda').value = ''
+    })
+    contenedor.appendChild(div)
+  })
+
+  contenedor.style.display = 'block'
+})
+
+function agregarProductoALinea(p) {
+  const nuevaLinea = {
+    numero: lineas.length + 1,
+    codigo: p.codigo,
+    nombre: p.nombre,
+    cantidad: 1,
+    precio: p.precio_venta,
+    descuento: 0,
+    iva: p.porcentaje_iva || 10,
+    total: 0
+  }
+  nuevaLinea.total = calcularTotalLinea(nuevaLinea)
+  lineas.push(nuevaLinea)
+  lineaSeleccionada = lineas.length - 1
+  renderizarLineas()
+}
 // Eventos de botones
 document.getElementById('btn-crear-linea').addEventListener('click', crearLinea)
 document.getElementById('btn-eliminar-linea').addEventListener('click', eliminarLinea)
