@@ -1,6 +1,7 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const { inicializarDB } = require('./src/js/database')
+const { importarProductos } = require('./src/js/importar-productos')
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -33,4 +34,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+ipcMain.handle('importar-productos', () => {
+  return importarProductos()
 })

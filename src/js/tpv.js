@@ -1,3 +1,6 @@
+
+const { ipcRenderer } = require('electron')
+
 // Estado de la venta actual
 let lineas = []
 let lineaSeleccionada = null
@@ -177,5 +180,22 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'F1') {
     e.preventDefault()
     crearLinea()
-  }
+   }
 })
+
+// Importar productos desde CSV
+async function importarProductos() {
+  const confirmar = confirm('¿Importar productos desde el CSV? Esto reemplazará todos los productos actuales.')
+  if (!confirmar) return
+
+  try {
+    const resultado = await ipcRenderer.invoke('importar-productos')
+    if (resultado.ok) {
+      alert(`Importación completada:\n${resultado.importados} productos importados\n${resultado.errores} errores`)
+    } else {
+      alert('Error: ' + resultado.mensaje)
+    }
+  } catch (e) {
+    alert('Error durante la importación: ' + e.message)
+  }
+}
