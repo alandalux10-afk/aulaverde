@@ -321,8 +321,11 @@ document.getElementById('btn-cobro-aceptar').addEventListener('click', async () 
       return
     }
   }
+  const resultado = await ipcRenderer.invoke('guardar-venta', lineas, formaPagoSeleccionada, 'TICKET')
   cerrarCobro()
-  alert('Venta cobrada correctamente')
+  if (resultado.ok) {
+    alert('Venta cobrada correctamente\nDocumento: ' + resultado.numeroDocumento)
+  }
   lineas = []
   lineaSeleccionada = null
   renderizarLineas()
