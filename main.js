@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const { inicializarDB, getDB } = require('./src/js/database')
 const { importarProductos } = require('./src/js/importar-productos')
+const { guardarVenta } = require('./src/js/ventas')
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -56,4 +57,8 @@ ipcMain.handle('buscar-productos', (event, texto) => {
     cols.forEach((col, i) => obj[col] = row[i])
     return obj
   })
+})
+
+ipcMain.handle('guardar-venta', (event, lineas, formaPago, tipoDocumento) => {
+  return guardarVenta(lineas, formaPago, tipoDocumento)
 })
