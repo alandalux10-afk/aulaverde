@@ -232,7 +232,80 @@ document.addEventListener('keydown', (e) => {
     crearLinea()
    }
 })
+// Ventana de cobro
+let formaPagoSeleccionada = 1
 
+function abrirCobro() {
+  if (lineas.length === 0) {
+    alert('No hay productos en la venta')
+    return
+  }
+  const total = lineas.reduce((acc, l) => acc + l.total, 0)
+  document.getElementById('cobro-total').textContent = formatearEuros(total)
+  document.getElementById('cobro-efectivo').value = ''
+  document.getElementById('cobro-cambio').textContent = '0,00 €'
+  document.getElementById('cobro-fila-efectivo').style.display = 'flex'
+  document.getElementById('cobro-fila-cambio').style.display = 'flex'
+  formaPagoSeleccionada = 1
+  document.querySelectorAll('.btn-forma-pago').forEach(b => b.classList.remove('activo'))
+  document.querySelector('.btn-forma-pago[data-forma="1"]').classList.add('activo')
+  document.getElementById('modal-cobro').style.display = 'block'
+  setTimeout(() => document.getElementById('cobro-efectivo').focus(), 100)
+}
+
+function cerrarCobro() {
+  document.getElementById('modal-cobro').style.display = 'none'
+}
+
+document.getElementById('btn-cobrar').addEventListener('click', abrirCobro)
+document.getElementById('btn-cobro-cancelar').addEventListener('click', cerrarCobro)
+
+document.querySelectorAll('.btn-forma-pago').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-forma-pago').forEach(b => b.classList.remove('activo'))
+    btn.classList.add('activo')
+    formaPagoSeleccionada = parseInt(btn.dataset.forma)
+    if (formaPagoSeleccionada === 2) {
+      document.getElementById('cobro-fila-efectivo').style.display = 'none'
+      document.getElementById('cobro-fila-cambio').style.display = 'none'
+    } else {
+      document.getElementById('cobro-fila-efectivo').style.display = 'flex'
+      document.getElementById('cobro-fila-cambio').style.display = 'flex'
+    }
+  })
+})
+
+document.getElementById('cobro-efectivo').addEventListener('input', function() {
+  const total = lineas.reduce((acc, l) => acc + l.total, 0)
+  const efectivo = parseFloat(this.value) || 0
+  const cambio = efectivo - total
+  document.getElementById('cobro-cambio').textContent = cambio >= 0
+    ? formatearEuros(cambio)
+    : '0,00 €'
+})
+
+document.getElementById('btn-cobro-aceptar').addEventListener('click', async () => {
+  const total = lineas.reduce((acc, l) => acc + l.total, 0)
+  if (formaPagoSeleccionada === 1) {
+    const efectivo = parseFloat(document.getElementById('cobro-efectivo').value) || 0
+    if (efectivo < total) {
+      alert('El efectivo entregado es menor que el total')
+      return
+    }
+  }
+  cerrarCobro()
+  alert('Venta cobrada correctamente')
+  lineas = []
+  lineaSeleccionada = null
+  renderizarLineas()
+})
+
+document.addEventListener('keydown', (e) => {
+  if (e.altKey && e.key === 'Enter') {
+    e.preventDefault()
+    abrirCobro()
+  }
+})
 // Importar productos desde CSV
 async function importarProductos() {
   const confirmar = confirm('¿Importar productos desde el CSV? Esto reemplazará todos los productos actuales.')

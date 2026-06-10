@@ -128,7 +128,36 @@
     </aside>
 
   </main>
-
+<!-- VENTANA DE COBRO -->
+<div id="modal-cobro" style="display:none">
+  <div id="cobro-overlay"></div>
+  <div id="cobro-ventana">
+    <h2>COBRO</h2>
+    <div class="cobro-fila">
+      <span>Forma de pago:</span>
+      <div id="cobro-formas-pago">
+        <button class="btn-forma-pago activo" data-forma="1">💵 Efectivo</button>
+        <button class="btn-forma-pago" data-forma="2">💳 Tarjeta</button>
+      </div>
+    </div>
+    <div class="cobro-fila">
+      <span>Total a pagar:</span>
+      <span id="cobro-total" class="cobro-importe">0,00 €</span>
+    </div>
+    <div class="cobro-fila" id="cobro-fila-efectivo">
+      <span>Efectivo entregado:</span>
+      <input type="number" id="cobro-efectivo" min="0" step="0.01" placeholder="0,00">
+    </div>
+    <div class="cobro-fila" id="cobro-fila-cambio">
+      <span>Cambio:</span>
+      <span id="cobro-cambio" class="cobro-importe">0,00 €</span>
+    </div>
+    <div id="cobro-botones">
+      <button id="btn-cobro-cancelar">Cancelar</button>
+      <button id="btn-cobro-aceptar">Aceptar</button>
+    </div>
+  </div>
+</div>
   <script src="../js/tpv.js"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 /* CABECERA */
@@ -289,4 +290,127 @@ body {
 
 .btn-enter:hover {
   background-color: #1e4d1e;
+}
+
+/* VENTANA DE COBRO */
+#modal-cobro {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+#cobro-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+}
+
+#cobro-ventana {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  width: 400px;
+  z-index: 10000;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+#cobro-ventana h2 {
+  text-align: center;
+  color: #2d6a2d;
+  font-size: 24px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #2d6a2d;
+  padding-bottom: 10px;
+}
+
+.cobro-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cobro-importe {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2d6a2d;
+}
+
+#cobro-formas-pago {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-forma-pago {
+  padding: 8px 16px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  background: white;
+  font-size: 14px;
+}
+
+.btn-forma-pago.activo {
+  border-color: #2d6a2d;
+  background: #e8f5e9;
+  color: #2d6a2d;
+  font-weight: bold;
+}
+
+#cobro-efectivo {
+  width: 120px;
+  padding: 8px;
+  font-size: 18px;
+  border: 2px solid #2d6a2d;
+  border-radius: 6px;
+  text-align: right;
+}
+
+#cobro-botones {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#btn-cobro-cancelar {
+  flex: 1;
+  padding: 12px;
+  background: #e57373;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#btn-cobro-aceptar {
+  flex: 1;
+  padding: 12px;
+  background: #2d6a2d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#btn-cobro-cancelar:hover {
+  background: #c62828;
+}
+
+#btn-cobro-aceptar:hover {
+  background: #1e4d1e;
 }
