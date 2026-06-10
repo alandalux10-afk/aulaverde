@@ -25,8 +25,11 @@ function formatearEuros(numero) {
 
 // Calcular total de una línea
 function calcularTotalLinea(linea) {
-  const total = linea.cantidad * linea.precio * (1 - linea.descuento / 100)
-  return Number(total.toFixed(2))
+  const base = linea.cantidad * linea.precio
+  const descuento = base * (linea.descuento / 100)
+  const baseConDto = base - descuento
+  const iva = baseConDto * (linea.iva / 100)
+  return Number((baseConDto + iva).toFixed(2))
 }
 
 // Recalcular totales del documento
@@ -39,15 +42,13 @@ function recalcularTotales() {
   lineas.forEach(linea => {
     const bruto = linea.cantidad * linea.precio
     const descuento = bruto * (linea.descuento / 100)
-    const totalConIva = bruto - descuento
-    const divisor = 1 + linea.iva / 100
-    const baseLinea = totalConIva / divisor
-    const ivaLinea = totalConIva - baseLinea
+    const baseLinea = bruto - descuento
+    const ivaLinea = baseLinea * (linea.iva / 100)
 
     base += baseLinea
     totalIva += ivaLinea
-    totalDescuento += descuento / divisor
-    totalVenta += totalConIva
+    totalDescuento += descuento
+    totalVenta += baseLinea + ivaLinea
   })
 
   document.getElementById('total-base').textContent = formatearEuros(base)
@@ -196,7 +197,7 @@ function agregarProductoALinea(p) {
     codigo: p.codigo,
     nombre: p.nombre,
     cantidad: 1,
-    precio: Number((p.precio_venta * (1 + (p.porcentaje_iva || 10) / 100)).toFixed(2)),
+    precio: p.precio_venta,
     descuento: 0,
     iva: p.porcentaje_iva || 10,
     total: 0

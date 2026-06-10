@@ -414,3 +414,7 @@ body {
 #btn-cobro-aceptar:hover {
   background: #1e4d1e;
 }
+.resultado-item.activo {
+  background-color: #c8e6c9;
+  font-weight: bold;
+}
