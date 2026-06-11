@@ -97,3 +97,42 @@ ipcMain.handle('eliminar-venta', (event, idVenta) => {
   guardarDB()
   return { ok: true }
 })
+
+ipcMain.handle('abrir-resumen', () => {
+  const win = new BrowserWindow({
+    width: 800,
+    height: 600,
+    title: 'Resumen - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/resumen.html')
+})
+
+ipcMain.handle('obtener-resumen', (event, fecha) => {
+  const db = getDB()
+  const ventas = db.exec("SELECT v.total_venta, v.estado, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha = '" + fecha + "'")
+  let numOperaciones = 0, totalVentas = 0, efectivo = 0, tarjeta = 0, pendientes = 0
+  if (ventas.length && ventas[0].values.length) {
+    ventas[0].values.forEach(row => {
+      const total = row[0], estado = row[1], forma = row[2]
+      numOperaciones++
+      if (estado === 'COBRADO') {
+        totalVentas += total
+        if (forma === 'Efectivo') efectivo += total
+        else tarjeta += total
+      } else {
+        pendientes++
+      }
+    })
+  }
+  const ticketMedio = numOperaciones > 0 ? totalVentas / numOperaciones : 0
+  const top = db.exec("SELECT lv.nombre_producto, SUM(lv.cantidad) as cantidad, SUM(lv.total_linea) as total FROM LINEAS_VENTA lv JOIN VENTAS v ON lv.id_venta = v.id_venta WHERE v.fecha = '" + fecha + "' GROUP BY lv.nombre_producto ORDER BY cantidad DESC LIMIT 5")
+  const topProductos = []
+  if (top.length && top[0].values.length) {
+    top[0].values.forEach(row => topProductos.push({ nombre: row[0], cantidad: row[1], total: row[2] }))
+  }
+  return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos }
+})

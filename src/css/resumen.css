@@ -1,0 +1,141 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#cabecera-resumen {
+  background-color: #2d6a2d;
+  color: white;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50px;
+}
+
+#titulo-resumen {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#btn-cerrar-resumen {
+  background-color: #e57373;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#btn-cerrar-resumen:hover {
+  background-color: #c62828;
+}
+
+#fecha-resumen {
+  background: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 1px solid #ccc;
+}
+
+#contenido-resumen {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+#contenedor-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px;
+  justify-content: center;
+}
+
+.tarjeta {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 160px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.tarjeta-verde {
+  background-color: #2d6a2d;
+  color: white;
+}
+
+.tarjeta-icono {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.tarjeta-valor {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #2d6a2d;
+}
+
+.tarjeta-verde .tarjeta-valor {
+  color: white;
+}
+
+.tarjeta-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.tarjeta-verde .tarjeta-label {
+  color: #c8e6c9;
+}
+
+#contenedor-top-productos {
+  padding: 0 16px 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+#contenedor-top-productos h3 {
+  color: #2d6a2d;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+#tabla-top-productos {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+#tabla-top-productos thead {
+  background-color: #2d6a2d;
+  color: white;
+}
+
+#tabla-top-productos th {
+  padding: 8px;
+  text-align: center;
+}
+
+#tabla-top-productos td {
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
