@@ -353,3 +353,7 @@ async function importarProductos() {
     alert('Error durante la importación: ' + e.message)
   }
 }
+// Abrir consultas
+document.getElementById('btn-consultas').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-consultas')
+})
