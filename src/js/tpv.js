@@ -357,3 +357,8 @@ async function importarProductos() {
 document.getElementById('btn-consultas').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-consultas')
 })
+
+// Abrir resumen
+document.getElementById('btn-resumen').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-resumen')
+})
