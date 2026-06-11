@@ -1,0 +1,192 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* CABECERA */
+#cabecera-consultas {
+  background-color: #2d6a2d;
+  color: white;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50px;
+}
+
+#titulo-consultas {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#btn-cerrar-consultas {
+  background-color: #e57373;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#btn-cerrar-consultas:hover {
+  background-color: #c62828;
+}
+
+/* FILTROS */
+#filtros {
+  background: white;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #ccc;
+}
+
+#filtros label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#filtros input[type="date"] {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+#btn-filtrar {
+  background-color: #2d6a2d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#btn-filtrar:hover {
+  background-color: #1e4d1e;
+}
+
+#btn-hoy {
+  background-color: #4a90a4;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#btn-hoy:hover {
+  background-color: #357a8a;
+}
+
+/* TABLA */
+#contenedor-consultas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+#tabla-consultas {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+#tabla-consultas thead {
+  background-color: #2d6a2d;
+  color: white;
+  position: sticky;
+  top: 0;
+}
+
+#tabla-consultas th {
+  padding: 10px 8px;
+  text-align: center;
+}
+
+#tabla-consultas td {
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+#tabla-consultas tbody tr:hover {
+  background-color: #e8f5e9;
+  cursor: pointer;
+}
+
+#tabla-consultas tbody tr.seleccionada {
+  background-color: #c8e6c9;
+}
+
+.estado-cobrado {
+  color: #2d6a2d;
+  font-weight: bold;
+}
+
+.estado-pendiente {
+  color: #e57373;
+  font-weight: bold;
+}
+
+/* BARRA DE ACCIONES */
+#barra-acciones {
+  background: white;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #ccc;
+}
+
+.btn-accion-consulta {
+  background-color: #4a90a4;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.btn-accion-consulta:hover {
+  background-color: #357a8a;
+}
+
+.btn-eliminar {
+  background-color: #e57373;
+}
+
+.btn-eliminar:hover {
+  background-color: #c62828;
+}
+
+#resumen-consultas {
+  margin-left: auto;
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #2d6a2d;
+}

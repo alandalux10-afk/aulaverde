@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Consultas — Aula Verde</title>
+  <link rel="stylesheet" href="../css/consultas.css">
+</head>
+<body>
+
+  <header id="cabecera-consultas">
+    <span id="titulo-consultas">📋 Consultas de ventas</span>
+    <button id="btn-cerrar-consultas">✕ Cerrar</button>
+  </header>
+
+  <div id="filtros">
+    <label>Desde: <input type="date" id="filtro-desde"></label>
+    <label>Hasta: <input type="date" id="filtro-hasta"></label>
+    <button id="btn-filtrar">🔍 Filtrar</button>
+    <button id="btn-hoy">Hoy</button>
+  </div>
+
+  <div id="contenedor-consultas">
+    <table id="tabla-consultas">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Nº Documento</th>
+          <th>Cliente</th>
+          <th>Estado</th>
+          <th>Forma de pago</th>
+          <th>Total</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-consultas">
+      </tbody>
+    </table>
+  </div>
+
+  <div id="barra-acciones">
+    <button class="btn-accion-consulta" id="btn-reimprimir">🖨️ Reimprimir</button>
+    <button class="btn-accion-consulta btn-eliminar" id="btn-eliminar-venta">🗑️ Eliminar</button>
+    <div id="resumen-consultas">
+      <span id="total-operaciones">0 operaciones</span>
+      <span id="total-importe">Total: 0,00 €</span>
+    </div>
+  </div>
+
+  <script src="../js/consultas.js"></script>
+</body>
+</html>
