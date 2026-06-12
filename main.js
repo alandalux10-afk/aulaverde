@@ -136,3 +136,14 @@ ipcMain.handle('obtener-resumen', (event, fecha) => {
   }
   return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos }
 })
+
+const { imprimirTicket } = require('./src/js/impresora')
+
+ipcMain.handle('imprimir-ticket', async (event, venta, lineas, configuracion) => {
+  try {
+    const resultado = await imprimirTicket(venta, lineas, configuracion)
+    return resultado
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
