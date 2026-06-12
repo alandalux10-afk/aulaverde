@@ -324,7 +324,11 @@ document.getElementById('btn-cobro-aceptar').addEventListener('click', async () 
   const resultado = await ipcRenderer.invoke('guardar-venta', lineas, formaPagoSeleccionada, 'TICKET')
   cerrarCobro()
   if (resultado.ok) {
-    alert('Venta cobrada correctamente\nDocumento: ' + resultado.numeroDocumento)
+    const imprimir = confirm('Venta cobrada\nDocumento: ' + resultado.numeroDocumento + '\n\n¿Imprimir ticket?')
+    if (imprimir) {
+      const resImp = await ipcRenderer.invoke('imprimir-ticket', resultado.venta, resultado.lineas, {})
+      if (!resImp.ok) alert('Error al imprimir: ' + resImp.mensaje)
+    }
   }
   lineas = []
   lineaSeleccionada = null

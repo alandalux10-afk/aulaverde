@@ -88,7 +88,9 @@ function guardarVenta(lineas, formaPago, tipoDocumento) {
 
   guardarDB()
 
-  return { ok: true, numeroDocumento, totalVenta }
+  const ventaGuardada = { numero_documento: numeroDocumento, fecha, hora, cliente: 'Cliente contado', total_venta: totalVenta, base_imponible: baseImponible, total_iva: totalIva, forma_pago: formaPago === 1 ? 'Efectivo' : 'Tarjeta' }
+  const lineasGuardadas = lineas.map((l, i) => ({ nombre_producto: l.nombre, cantidad: l.cantidad, total_linea: l.total }))
+  return { ok: true, numeroDocumento, totalVenta, venta: ventaGuardada, lineas: lineasGuardadas }
 }
 
 module.exports = { guardarVenta }
