@@ -5,7 +5,7 @@
   <title>Aula Verde TPV</title>
   <link rel="stylesheet" href="../css/tpv.css">
 </head>
-<body>
+<body tabindex="-1">
 
   <!-- CABECERA -->
   <header id="cabecera">
@@ -26,6 +26,7 @@
     <aside id="panel-izquierdo">
       <button class="btn-menu" id="btn-consultas">📋 Consultas</button>
       <button class="btn-menu" id="btn-resumen">📊 Resumen</button>
+      <button id="btn-configuracion">⚙️ Configuración</button>
       <button class="btn-menu" id="btn-impresora">🖨️ Impresora</button>
       <button class="btn-menu" id="btn-visor">🖥️ Visor</button>
       <button class="btn-menu" id="btn-balanza">⚖️ Balanza</button>
@@ -152,12 +153,59 @@
       <span>Cambio:</span>
       <span id="cobro-cambio" class="cobro-importe">0,00 €</span>
     </div>
+ <div class="cobro-fila">
+  <span>Tipo de documento:</span>
+  <div id="cobro-tipos-documento">
+    <button class="btn-tipo-doc activo" data-tipo="TICKET">🧾 Ticket</button>
+    <button class="btn-tipo-doc" data-tipo="FACTURA_SIMPLIFICADA">📄 Factura</button>
+  </div>
+</div>
     <div id="cobro-botones">
       <button id="btn-cobro-cancelar">Cancelar</button>
       <button id="btn-cobro-aceptar">Aceptar</button>
     </div>
   </div>
 </div>
-  <script src="../js/tpv.js"></script>
+<!-- VENTANA OPCIONES LÍNEA -->
+<div id="modal-opciones" style="display:none">
+  <div id="opciones-overlay"></div>
+  <div id="opciones-ventana">
+    <h2>Opciones de línea</h2>
+    <div class="opciones-fila">
+      <label>Código</label>
+      <input type="text" id="op-codigo">
+    </div>
+    <div class="opciones-fila">
+      <label>Nombre</label>
+      <input type="text" id="op-nombre">
+    </div>
+    <div class="opciones-fila">
+      <label>Cantidad</label>
+     <input type="text" id="op-cantidad" placeholder="0">
+    </div>
+    <div class="opciones-fila">
+      <label>Precio (con IVA)</label>
+<input type="text" id="op-precio" placeholder="0.00">
+    </div>
+    <div class="opciones-fila">
+      <label>Descuento %</label>
+<input type="text" id="op-descuento" placeholder="0">
+    </div>
+    <div class="opciones-fila">
+      <label>IVA %</label>
+      <select id="op-iva">
+        <option value="0">0% — Exento</option>
+        <option value="4">4% — Superreducido</option>
+        <option value="10">10% — Reducido</option>
+        <option value="21">21% — General</option>
+      </select>
+    </div>
+    <div id="opciones-botones">
+      <button id="btn-opciones-cancelar">Cancelar</button>
+      <button id="btn-opciones-aceptar">Aceptar</button>
+    </div>
+  </div>
+</div>
+<script src="../js/tpv.js"></script>
 </body>
 </html>

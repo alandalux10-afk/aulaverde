@@ -3,6 +3,8 @@ const path = require('path')
 const { inicializarDB, getDB } = require('./src/js/database')
 const { importarProductos } = require('./src/js/importar-productos')
 const { guardarVenta } = require('./src/js/ventas')
+const { imprimirTicket } = require('./src/js/impresora')
+const { imprimirFactura } = require('./src/js/factura')
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -16,25 +18,19 @@ function createWindow() {
       contextIsolation: false
     }
   })
-
   win.loadFile('src/html/tpv.html')
 }
 
 app.whenReady().then(async () => {
   await inicializarDB()
   createWindow()
-
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
 })
 
 ipcMain.handle('importar-productos', () => {
@@ -137,13 +133,114 @@ ipcMain.handle('obtener-resumen', (event, fecha) => {
   return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos }
 })
 
-const { imprimirTicket } = require('./src/js/impresora')
-
-ipcMain.handle('imprimir-ticket', async (event, venta, lineas, configuracion) => {
+ipcMain.handle('imprimir-ticket', async (event, venta, lineas) => {
   try {
-    const resultado = await imprimirTicket(venta, lineas, configuracion)
-    return resultado
+    const db = getDB()
+    const cfgResult = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
+    const cfg = {}
+    if (cfgResult.length && cfgResult[0].values.length) {
+      const cols = cfgResult[0].columns
+      cfgResult[0].values[0].forEach((val, i) => cfg[cols[i]] = val)
+    }
+    return await imprimirTicket(venta, lineas, cfg)
   } catch (e) {
     return { ok: false, mensaje: e.message }
   }
+})
+
+ipcMain.handle('imprimir-factura', async (event, venta, lineas) => {
+  try {
+    const db = getDB()
+    const cfgResult = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
+    const cfg = {}
+    if (cfgResult.length && cfgResult[0].values.length) {
+      const cols = cfgResult[0].columns
+      cfgResult[0].values[0].forEach((val, i) => cfg[cols[i]] = val)
+    }
+    return await imprimirFactura(venta, lineas, cfg)
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('reimprimir-ticket', async (event, idVenta) => {
+  try {
+    const db = getDB()
+    const ventaResult = db.exec(`
+      SELECT v.*, f.nombre as forma_pago
+      FROM VENTAS v
+      JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago
+      WHERE v.id_venta = ${idVenta}
+    `)
+    if (!ventaResult.length) return { ok: false, mensaje: 'Venta no encontrada' }
+    const cols = ventaResult[0].columns
+    const venta = {}
+    ventaResult[0].values[0].forEach((val, i) => venta[cols[i]] = val)
+    const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ${idVenta}`)
+    const lineas = []
+    if (lineasResult.length && lineasResult[0].values.length) {
+      const lCols = lineasResult[0].columns
+      lineasResult[0].values.forEach(row => {
+        const linea = {}
+        lCols.forEach((col, i) => linea[col] = row[i])
+        lineas.push(linea)
+      })
+    }
+    const cfgResult = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
+    const cfg = {}
+    if (cfgResult.length && cfgResult[0].values.length) {
+      const cCols = cfgResult[0].columns
+      cfgResult[0].values[0].forEach((val, i) => cfg[cCols[i]] = val)
+    }
+    return await imprimirTicket(venta, lineas, cfg)
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('obtener-configuracion', () => {
+  const db = getDB()
+  const result = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
+  if (!result.length || !result[0].values.length) return null
+  const cols = result[0].columns
+  const cfg = {}
+  result[0].values[0].forEach((val, i) => cfg[cols[i]] = val)
+  return cfg
+})
+
+ipcMain.handle('guardar-configuracion', (event, datos) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    db.run(
+      'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=? WHERE id_configuracion=1',
+      [
+        datos.nombre_tienda,
+        datos.razon_social,
+        datos.nif_vendedor,
+        datos.direccion,
+        datos.telefono,
+        datos.email,
+        datos.impresora_ticket,
+        datos.impresora_factura
+      ]
+    )
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('abrir-configuracion', () => {
+  const win = new BrowserWindow({
+    width: 680,
+    height: 620,
+    title: 'Configuración - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/configuracion.html')
 })
