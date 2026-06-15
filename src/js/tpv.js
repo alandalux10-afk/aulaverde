@@ -1,41 +1,30 @@
-
 const { ipcRenderer } = require('electron')
 
-// Estado de la venta actual
 let lineas = []
 let lineaSeleccionada = null
 let displayCalc = ''
 let modoCalc = 'cantidad'
 
-// Actualizar fecha y hora en cabecera
 function actualizarFechaHora() {
   const ahora = new Date()
   const fecha = ahora.toLocaleDateString('es-ES')
   const hora = ahora.toLocaleTimeString('es-ES')
   document.getElementById('fecha-hora').textContent = `${fecha} ${hora}`
 }
-
 setInterval(actualizarFechaHora, 1000)
 actualizarFechaHora()
 
-// Formatear número como moneda
 function formatearEuros(numero) {
   return Number(numero).toFixed(2).replace('.', ',') + ' €'
 }
 
-// Calcular total de una línea
 function calcularTotalLinea(linea) {
   const total = linea.cantidad * linea.precio * (1 - linea.descuento / 100)
   return Number(total.toFixed(2))
 }
 
-// Recalcular totales del documento
 function recalcularTotales() {
-  let base = 0
-  let totalIva = 0
-  let totalDescuento = 0
-  let totalVenta = 0
-
+  let base = 0, totalIva = 0, totalDescuento = 0, totalVenta = 0
   lineas.forEach(linea => {
     const bruto = linea.cantidad * linea.precio
     const descuento = bruto * (linea.descuento / 100)
@@ -43,30 +32,23 @@ function recalcularTotales() {
     const divisor = 1 + linea.iva / 100
     const baseLinea = totalConIva / divisor
     const ivaLinea = totalConIva - baseLinea
-
     base += baseLinea
     totalIva += ivaLinea
     totalDescuento += descuento / divisor
     totalVenta += totalConIva
   })
-
   document.getElementById('total-base').textContent = formatearEuros(base)
   document.getElementById('total-iva').textContent = formatearEuros(totalIva)
   document.getElementById('total-descuento').textContent = formatearEuros(totalDescuento)
   document.getElementById('total-venta').textContent = formatearEuros(totalVenta)
 }
 
-// Renderizar tabla de líneas
 function renderizarLineas() {
   const tbody = document.getElementById('cuerpo-tabla')
   tbody.innerHTML = ''
-
   lineas.forEach((linea, index) => {
     const tr = document.createElement('tr')
-    if (lineaSeleccionada === index) {
-      tr.classList.add('seleccionada')
-    }
-
+    if (lineaSeleccionada === index) tr.classList.add('seleccionada')
     tr.innerHTML = `
       <td>${linea.numero}</td>
       <td>${linea.codigo}</td>
@@ -77,19 +59,16 @@ function renderizarLineas() {
       <td>${linea.iva}%</td>
       <td>${formatearEuros(linea.total)}</td>
     `
-
     tr.addEventListener('click', () => {
       lineaSeleccionada = index
+      document.body.focus()
       renderizarLineas()
     })
-
     tbody.appendChild(tr)
   })
-
   recalcularTotales()
 }
 
-// Crear línea en blanco
 function crearLinea() {
   const nuevaLinea = {
     numero: lineas.length + 1,
@@ -106,7 +85,6 @@ function crearLinea() {
   renderizarLineas()
 }
 
-// Eliminar línea seleccionada
 function eliminarLinea() {
   if (lineaSeleccionada === null) {
     alert('Selecciona una línea para eliminar')
@@ -118,7 +96,6 @@ function eliminarLinea() {
   renderizarLineas()
 }
 
-// Calculadora
 function pulsarNumero(num) {
   displayCalc += num
   document.getElementById('display-calc').textContent = displayCalc
@@ -138,7 +115,6 @@ function aplicarCalculadora(accion) {
   if (accion === 'ud') modoCalc = 'cantidad'
   if (accion === 'precio') modoCalc = 'precio'
   if (accion === 'dto') modoCalc = 'descuento'
-
   if (accion === 'enter' && lineaSeleccionada !== null && displayCalc !== '') {
     const valor = parseFloat(displayCalc.replace(',', '.'))
     if (!isNaN(valor)) {
@@ -151,28 +127,23 @@ function aplicarCalculadora(accion) {
       renderizarLineas()
     }
   }
-
-  document.getElementById('display-calc').textContent = 
+  document.getElementById('display-calc').textContent =
     accion !== 'enter' ? `[${modoCalc}] ${displayCalc}` : displayCalc
 }
-// Buscar productos en la base de datos
+
 document.getElementById('input-busqueda').addEventListener('input', async function() {
   const texto = this.value.trim()
   const contenedor = document.getElementById('resultados-busqueda')
-
   if (texto.length < 2) {
     contenedor.style.display = 'none'
     contenedor.innerHTML = ''
     return
   }
-
   const productos = await ipcRenderer.invoke('buscar-productos', texto)
-
   if (productos.length === 0) {
     contenedor.style.display = 'none'
     return
   }
-
   contenedor.innerHTML = ''
   productos.forEach(p => {
     const div = document.createElement('div')
@@ -186,7 +157,6 @@ document.getElementById('input-busqueda').addEventListener('input', async functi
     })
     contenedor.appendChild(div)
   })
-
   contenedor.style.display = 'block'
 })
 
@@ -206,15 +176,13 @@ function agregarProductoALinea(p) {
   lineaSeleccionada = lineas.length - 1
   renderizarLineas()
 }
-// Navegación con teclado en el buscador
+
 document.getElementById('input-busqueda').addEventListener('keydown', function(e) {
   const contenedor = document.getElementById('resultados-busqueda')
   const items = contenedor.querySelectorAll('.resultado-item')
   if (!items.length) return
-
   const activo = contenedor.querySelector('.resultado-item.activo')
   let index = Array.from(items).indexOf(activo)
-
   if (e.key === 'ArrowDown') {
     e.preventDefault()
     if (activo) activo.classList.remove('activo')
@@ -235,11 +203,10 @@ document.getElementById('input-busqueda').addEventListener('keydown', function(e
     contenedor.innerHTML = ''
   }
 })
-// Eventos de botones
+
 document.getElementById('btn-crear-linea').addEventListener('click', crearLinea)
 document.getElementById('btn-eliminar-linea').addEventListener('click', eliminarLinea)
 
-// Botones calculadora
 document.querySelectorAll('.btn-calc[data-num]').forEach(btn => {
   btn.addEventListener('click', () => pulsarNumero(btn.dataset.num))
 })
@@ -253,15 +220,15 @@ document.querySelectorAll('.btn-calc[data-accion]').forEach(btn => {
   })
 })
 
-// Atajo de teclado F1
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F1') {
     e.preventDefault()
     crearLinea()
-   }
+  }
 })
-// Ventana de cobro
+
 let formaPagoSeleccionada = 1
+let tipoDocumentoSeleccionado = 'TICKET'
 
 function abrirCobro() {
   if (lineas.length === 0) {
@@ -277,6 +244,9 @@ function abrirCobro() {
   formaPagoSeleccionada = 1
   document.querySelectorAll('.btn-forma-pago').forEach(b => b.classList.remove('activo'))
   document.querySelector('.btn-forma-pago[data-forma="1"]').classList.add('activo')
+  tipoDocumentoSeleccionado = 'TICKET'
+  document.querySelectorAll('.btn-tipo-doc').forEach(b => b.classList.remove('activo'))
+  document.querySelector('.btn-tipo-doc[data-tipo="TICKET"]').classList.add('activo')
   document.getElementById('modal-cobro').style.display = 'block'
   setTimeout(() => document.getElementById('cobro-efectivo').focus(), 100)
 }
@@ -287,6 +257,14 @@ function cerrarCobro() {
 
 document.getElementById('btn-cobrar').addEventListener('click', abrirCobro)
 document.getElementById('btn-cobro-cancelar').addEventListener('click', cerrarCobro)
+
+document.querySelectorAll('.btn-tipo-doc').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-tipo-doc').forEach(b => b.classList.remove('activo'))
+    btn.classList.add('activo')
+    tipoDocumentoSeleccionado = btn.dataset.tipo
+  })
+})
 
 document.querySelectorAll('.btn-forma-pago').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -301,6 +279,13 @@ document.querySelectorAll('.btn-forma-pago').forEach(btn => {
       document.getElementById('cobro-fila-cambio').style.display = 'flex'
     }
   })
+})
+
+document.getElementById('cobro-efectivo').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    document.getElementById('btn-cobro-aceptar').click()
+  }
 })
 
 document.getElementById('cobro-efectivo').addEventListener('input', function() {
@@ -321,12 +306,17 @@ document.getElementById('btn-cobro-aceptar').addEventListener('click', async () 
       return
     }
   }
-  const resultado = await ipcRenderer.invoke('guardar-venta', lineas, formaPagoSeleccionada, 'TICKET')
+  const resultado = await ipcRenderer.invoke('guardar-venta', lineas, formaPagoSeleccionada, tipoDocumentoSeleccionado)
   cerrarCobro()
   if (resultado.ok) {
-    const imprimir = confirm('Venta cobrada\nDocumento: ' + resultado.numeroDocumento + '\n\n¿Imprimir ticket?')
+    const imprimir = confirm('Venta cobrada\nDocumento: ' + resultado.numeroDocumento + '\n\n¿Imprimir documento?')
     if (imprimir) {
-      const resImp = await ipcRenderer.invoke('imprimir-ticket', resultado.venta, resultado.lineas, {})
+      let resImp
+      if (tipoDocumentoSeleccionado === 'FACTURA_SIMPLIFICADA') {
+        resImp = await ipcRenderer.invoke('imprimir-factura', resultado.venta, resultado.lineas)
+      } else {
+        resImp = await ipcRenderer.invoke('imprimir-ticket', resultado.venta, resultado.lineas, {})
+      }
       if (!resImp.ok) alert('Error al imprimir: ' + resImp.mensaje)
     }
   }
@@ -341,11 +331,10 @@ document.addEventListener('keydown', (e) => {
     abrirCobro()
   }
 })
-// Importar productos desde CSV
+
 async function importarProductos() {
   const confirmar = confirm('¿Importar productos desde el CSV? Esto reemplazará todos los productos actuales.')
   if (!confirmar) return
-
   try {
     const resultado = await ipcRenderer.invoke('importar-productos')
     if (resultado.ok) {
@@ -357,12 +346,81 @@ async function importarProductos() {
     alert('Error durante la importación: ' + e.message)
   }
 }
-// Abrir consultas
+
 document.getElementById('btn-consultas').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-consultas')
 })
 
-// Abrir resumen
 document.getElementById('btn-resumen').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-resumen')
 })
+
+document.getElementById('btn-configuracion').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-configuracion')
+})
+
+function abrirOpciones() {
+  if (lineaSeleccionada === null) {
+    alert('Selecciona una línea para editar')
+    return
+  }
+  const linea = lineas[lineaSeleccionada]
+  document.getElementById('op-codigo').value = linea.codigo
+  document.getElementById('op-nombre').value = linea.nombre
+  document.getElementById('op-cantidad').value = linea.cantidad
+  document.getElementById('op-precio').value = linea.precio
+  document.getElementById('op-descuento').value = linea.descuento
+  document.getElementById('op-iva').value = linea.iva
+  document.getElementById('modal-opciones').style.display = 'block'
+}
+
+function cerrarOpciones() {
+  document.getElementById('modal-opciones').style.display = 'none'
+}
+
+document.getElementById('btn-opciones-linea').addEventListener('click', abrirOpciones)
+document.getElementById('btn-opciones-cancelar').addEventListener('click', cerrarOpciones)
+
+document.getElementById('btn-opciones-aceptar').addEventListener('click', () => {
+  const linea = lineas[lineaSeleccionada]
+  linea.codigo = document.getElementById('op-codigo').value
+  linea.nombre = document.getElementById('op-nombre').value
+  linea.cantidad = parseFloat(document.getElementById('op-cantidad').value) || 0
+  linea.precio = parseFloat(document.getElementById('op-precio').value) || 0
+  linea.descuento = parseFloat(document.getElementById('op-descuento').value) || 0
+  linea.iva = parseFloat(document.getElementById('op-iva').value) || 0
+  linea.total = calcularTotalLinea(linea)
+  cerrarOpciones()
+  renderizarLineas()
+})
+
+document.addEventListener('keydown', (e) => {
+  const foco = document.activeElement
+  if (foco && foco.id === 'cobro-efectivo') return
+  if (document.getElementById('modal-opciones').style.display === 'block') return
+  if (document.getElementById('modal-cobro').style.display === 'block') return
+  if (lineaSeleccionada !== null) {
+    if ((e.key >= '0' && e.key <= '9') || e.key === '.') {
+      e.preventDefault()
+      e.stopPropagation()
+      pulsarNumero(e.key)
+      return
+    }
+    if (e.key === 'Backspace') {
+      e.preventDefault()
+      pulsarBorrar()
+      return
+    }
+    if (e.key === 'Escape') {
+      pulsarLimpiar()
+      return
+    }
+    if (e.key === 'Enter' && !e.altKey) {
+      if (displayCalc !== '') {
+        e.preventDefault()
+        aplicarCalculadora('enter')
+      }
+      return
+    }
+  }
+}, true)

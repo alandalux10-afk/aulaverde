@@ -75,7 +75,16 @@ document.getElementById('btn-eliminar-venta').addEventListener('click', async ()
 	const hasta = document.getElementById('filtro-hasta').value
 	cargarVentas(desde, hasta)
 })
-
+document.getElementById('btn-reimprimir').addEventListener('click', async () => {
+  if (!ventaSeleccionada) {
+    alert('Selecciona una venta para reimprimir')
+    return
+  }
+  const resultado = await ipcRenderer.invoke('reimprimir-ticket', ventaSeleccionada.id_venta)
+  if (!resultado.ok) {
+    alert('Error al reimprimir: ' + resultado.mensaje)
+  }
+})
 document.getElementById('btn-cerrar-consultas').addEventListener('click', () => {
 	window.close()
 })

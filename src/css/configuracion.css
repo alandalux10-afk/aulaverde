@@ -1,0 +1,100 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+
+.cabecera {
+  background: #2d6a2d;
+  color: white;
+  padding: 16px 24px;
+}
+
+.cabecera h1 {
+  font-size: 20px;
+}
+
+.formulario {
+  padding: 24px;
+  max-width: 600px;
+}
+
+.grupo {
+  margin-bottom: 16px;
+}
+
+.grupo label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+.grupo input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.grupo input:focus {
+  outline: none;
+  border-color: #2d6a2d;
+}
+
+.botones {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.botones button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#btn-guardar {
+  background: #2d6a2d;
+  color: white;
+}
+
+#btn-guardar:hover {
+  background: #245224;
+}
+
+#btn-cerrar {
+  background: #ccc;
+  color: #333;
+}
+
+#btn-cerrar:hover {
+  background: #bbb;
+}
+
+#mensaje {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  display: none;
+}
+
+#mensaje.ok {
+  background: #d4edda;
+  color: #155724;
+  display: block;
+}
+
+#mensaje.error {
+  background: #f8d7da;
+  color: #721c24;
+  display: block;
+}
