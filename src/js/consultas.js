@@ -75,6 +75,13 @@ document.getElementById('btn-eliminar-venta').addEventListener('click', async ()
 	const hasta = document.getElementById('filtro-hasta').value
 	cargarVentas(desde, hasta)
 })
+document.getElementById('btn-modificar-venta').addEventListener('click', async () => {
+  if (!ventaSeleccionada) {
+    alert('Selecciona una venta para modificar')
+    return
+  }
+  await ipcRenderer.invoke('abrir-modificar-venta', ventaSeleccionada.id_venta)
+})
 document.getElementById('btn-reimprimir').addEventListener('click', async () => {
   if (!ventaSeleccionada) {
     alert('Selecciona una venta para reimprimir')

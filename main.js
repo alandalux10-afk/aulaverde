@@ -6,6 +6,8 @@ const { guardarVenta } = require('./src/js/ventas')
 const { imprimirTicket } = require('./src/js/impresora')
 const { imprimirFactura } = require('./src/js/factura')
 
+let idVentaModificar = null
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
@@ -243,4 +245,94 @@ ipcMain.handle('abrir-configuracion', () => {
     }
   })
   win.loadFile('src/html/configuracion.html')
+})
+
+ipcMain.handle('abrir-modificar-venta', (event, idVenta) => {
+  idVentaModificar = idVenta
+  const win = new BrowserWindow({
+    width: 900,
+    height: 650,
+    title: 'Modificar venta - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/modificar-venta.html')
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.send('iniciar-carga', idVentaModificar)
+  })
+})
+
+ipcMain.handle('obtener-id-venta-modificar', () => {
+  return idVentaModificar
+})
+
+ipcMain.handle('obtener-venta-detalle', (event, idVenta) => {
+  const db = getDB()
+  const ventaResult = db.exec(`
+    SELECT v.*, f.nombre as forma_pago
+    FROM VENTAS v
+    JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago
+    WHERE v.id_venta = ${idVenta}
+  `)
+  if (!ventaResult.length) return null
+  const vCols = ventaResult[0].columns
+  const venta = {}
+  ventaResult[0].values[0].forEach((val, i) => venta[vCols[i]] = val)
+  const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ${idVenta} ORDER BY numero_linea`)
+  const lineas = []
+  if (lineasResult.length && lineasResult[0].values.length) {
+    const lCols = lineasResult[0].columns
+    lineasResult[0].values.forEach(row => {
+      const l = {}
+      lCols.forEach((col, i) => l[col] = row[i])
+      lineas.push(l)
+    })
+  }
+  return { venta, lineas }
+})
+
+ipcMain.handle('modificar-venta', (event, idVenta, lineas) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    let base = 0, totalIva = 0, totalDto = 0, totalVenta = 0
+    lineas.forEach(l => {
+      const bruto = l.cantidad * l.precio
+      const dto = bruto * (l.descuento / 100)
+      const conIva = bruto - dto
+      const divisor = 1 + l.iva / 100
+      base += conIva / divisor
+      totalIva += conIva - conIva / divisor
+      totalDto += dto / divisor
+      totalVenta += conIva
+    })
+    db.run(
+      'UPDATE VENTAS SET base_imponible=?, total_iva=?, total_descuento=?, total_venta=? WHERE id_venta=?',
+      [
+        Number(base.toFixed(2)),
+        Number(totalIva.toFixed(2)),
+        Number(totalDto.toFixed(2)),
+        Number(totalVenta.toFixed(2)),
+        idVenta
+      ]
+    )
+    db.run('DELETE FROM LINEAS_VENTA WHERE id_venta = ?', [idVenta])
+    lineas.forEach((l, i) => {
+      const bruto = l.cantidad * l.precio
+      const dto = bruto * (l.descuento / 100)
+      const conIva = bruto - dto
+      const divisor = 1 + l.iva / 100
+      const ivaLinea = conIva - conIva / divisor
+      db.run(
+        'INSERT INTO LINEAS_VENTA (id_venta, numero_linea, id_producto, codigo_producto, nombre_producto, cantidad, precio_unitario, descuento, porcentaje_iva, importe_iva, total_linea) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [idVenta, i + 1, 0, l.codigo, l.nombre, l.cantidad, l.precio, l.descuento, l.iva, Number(ivaLinea.toFixed(2)), Number(conIva.toFixed(2))]
+      )
+    })
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
 })

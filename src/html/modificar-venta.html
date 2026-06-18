@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Modificar venta - Aula Verde</title>
+  <link rel="stylesheet" href="../css/tpv.css">
+  <link rel="stylesheet" href="../css/modificar-venta.css">
+</head>
+<body>
+  <div id="cabecera-mod">
+    <h2>✏️ Modificar venta</h2>
+    <span id="info-doc"></span>
+  </div>
+  <div id="contenido-mod">
+    <div id="panel-lineas">
+      <div id="buscador-mod">
+        <input type="text" id="input-busqueda-mod" placeholder="Buscar producto para añadir...">
+        <div id="resultados-busqueda-mod"></div>
+      </div>
+      <div id="contenedor-tabla-mod">
+        <table id="tabla-mod">
+          <thead>
+            <tr>
+              <th>Nº</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Dto%</th>
+              <th>IVA%</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-mod"></tbody>
+        </table>
+      </div>
+      <div id="totales-mod">
+        <div class="fila-mod"><span>Base imponible:</span><span id="mod-base">0,00 €</span></div>
+        <div class="fila-mod"><span>IVA:</span><span id="mod-iva">0,00 €</span></div>
+        <div class="fila-mod"><span>Descuentos:</span><span id="mod-dto">0,00 €</span></div>
+        <div class="fila-mod fila-mod-total"><span>TOTAL:</span><span id="mod-total">0,00 €</span></div>
+      </div>
+    </div>
+    <div id="panel-acciones-mod">
+      <button id="btn-mod-crear">➕ Añadir línea</button>
+      <button id="btn-mod-eliminar">🗑️ Eliminar línea</button>
+      <button id="btn-mod-guardar">💾 Guardar cambios</button>
+      <button id="btn-mod-cancelar">✖ Cancelar</button>
+    </div>
+  </div>
+  <!-- Modal editar línea -->
+<div id="modal-editar-linea" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000;">
+  <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);"></div>
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border-radius:8px; padding:24px; width:340px; z-index:1001;">
+    <h3 style="color:#2d6a2d; margin-bottom:16px;">Editar línea</h3>
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;color:#555;">Cantidad</label><input type="text" id="ed-cantidad" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:14px;margin-top:4px;"></div>
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;color:#555;">Precio (con IVA)</label><input type="text" id="ed-precio" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:14px;margin-top:4px;"></div>
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;color:#555;">Descuento %</label><input type="text" id="ed-descuento" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:14px;margin-top:4px;"></div>
+    <div style="margin-bottom:16px;"><label style="font-size:12px;font-weight:600;color:#555;">IVA %</label>
+      <select id="ed-iva" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:14px;margin-top:4px;">
+        <option value="0">0% — Exento</option>
+        <option value="4">4% — Superreducido</option>
+        <option value="10">10% — Reducido</option>
+        <option value="21">21% — General</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <button id="btn-ed-cancelar" style="flex:1;padding:10px;background:#ccc;border:none;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+      <button id="btn-ed-aceptar" style="flex:1;padding:10px;background:#2d6a2d;color:white;border:none;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;">Aceptar</button>
+    </div>
+  </div>
+</div>
+  <script src="../js/modificar-venta.js"></script>
+</body>
+</html>
