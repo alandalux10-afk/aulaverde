@@ -1,0 +1,64 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
+
+#cabecera-mod {
+  background: #2d6a2d; color: white;
+  padding: 12px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+#cabecera-mod h2 { font-size: 16px; margin: 0; }
+#info-doc { font-size: 13px; opacity: 0.85; }
+
+#contenido-mod {
+  display: flex; gap: 12px; padding: 12px;
+  height: calc(100vh - 56px);
+}
+
+#panel-lineas { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+#buscador-mod { position: relative; }
+#input-busqueda-mod {
+  width: 100%; padding: 8px 12px;
+  border: 1px solid #ccc; border-radius: 4px;
+  font-size: 14px; box-sizing: border-box;
+}
+#resultados-busqueda-mod {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: white; border: 1px solid #ccc; border-radius: 4px;
+  z-index: 100; max-height: 200px; overflow-y: auto; display: none;
+}
+.resultado-item-mod { padding: 8px 12px; cursor: pointer; font-size: 13px; }
+.resultado-item-mod:hover { background: #e8f5e9; }
+
+#contenedor-tabla-mod { flex: 1; overflow-y: auto; }
+#tabla-mod { width: 100%; border-collapse: collapse; font-size: 13px; }
+#tabla-mod thead tr { background: #2d6a2d; color: white; }
+#tabla-mod th, #tabla-mod td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #eee; }
+#tabla-mod tr.seleccionada { background: #c8e6c9; }
+#tabla-mod tbody tr:hover { background: #f1f8e9; cursor: pointer; }
+
+#totales-mod {
+  background: white; border-radius: 4px;
+  padding: 10px 14px; font-size: 13px;
+}
+.fila-mod { display: flex; justify-content: space-between; padding: 2px 0; }
+.fila-mod-total {
+  font-size: 16px; font-weight: bold; color: #2d6a2d;
+  border-top: 1px solid #ccc; margin-top: 4px; padding-top: 4px;
+}
+
+#panel-acciones-mod {
+  width: 180px; display: flex; flex-direction: column; gap: 8px;
+}
+#panel-acciones-mod button {
+  padding: 10px; border: none; border-radius: 4px;
+  font-size: 13px; font-weight: 600; cursor: pointer; width: 100%;
+}
+#btn-mod-crear { background: #4caf50; color: white; }
+#btn-mod-eliminar { background: #e57373; color: white; }
+#btn-mod-guardar { background: #2d6a2d; color: white; font-size: 15px; margin-top: auto; }
+#btn-mod-cancelar { background: #ccc; color: #333; }
+.resultado-item-mod.activo {
+  background: #2d6a2d;
+  color: white;
+}
