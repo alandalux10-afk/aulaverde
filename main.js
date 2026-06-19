@@ -132,7 +132,19 @@ ipcMain.handle('obtener-resumen', (event, fecha) => {
   if (top.length && top[0].values.length) {
     top[0].values.forEach(row => topProductos.push({ nombre: row[0], cantidad: row[1], total: row[2] }))
   }
-  return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos }
+// Calcular beneficio estimado
+  const beneficioResult = db.exec(`
+    SELECT SUM((lv.precio_unitario - COALESCE(p.precio_coste, 0)) * lv.cantidad) as beneficio
+    FROM LINEAS_VENTA lv
+    JOIN VENTAS v ON lv.id_venta = v.id_venta
+    JOIN PRODUCTOS p ON lv.codigo_producto = p.codigo
+    WHERE v.fecha = '${fecha}' AND v.estado = 'COBRADO'
+  `)
+  const beneficio = beneficioResult.length && beneficioResult[0].values[0][0]
+    ? beneficioResult[0].values[0][0]
+    : 0
+
+  return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos, beneficio }
 })
 
 ipcMain.handle('imprimir-ticket', async (event, venta, lineas) => {
