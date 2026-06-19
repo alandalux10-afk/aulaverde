@@ -16,7 +16,7 @@ async function cargarResumen() {
   document.getElementById('ventas-tarjeta').textContent = formatearEuros(datos.tarjeta)
   document.getElementById('ticket-medio').textContent = formatearEuros(datos.ticketMedio)
   document.getElementById('ventas-pendientes').textContent = datos.pendientes
-
+document.getElementById('beneficio-estimado').textContent = formatearEuros(datos.beneficio || 0)
   const tbody = document.getElementById('cuerpo-top-productos')
   tbody.innerHTML = ''
   datos.topProductos.forEach(p => {
