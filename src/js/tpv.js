@@ -358,6 +358,9 @@ document.getElementById('btn-resumen').addEventListener('click', () => {
 document.getElementById('btn-configuracion').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-configuracion')
 })
+document.getElementById('btn-catalogo').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-catalogo')
+})
 
 function abrirOpciones() {
   if (lineaSeleccionada === null) {

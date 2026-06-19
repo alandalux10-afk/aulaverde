@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo de productos - Aula Verde</title>
+  <link rel="stylesheet" href="../css/catalogo.css">
+</head>
+<body>
+  <div id="cabecera-cat">
+    <h2>📦 Catálogo de productos</h2>
+    <button id="btn-cerrar-cat">✕ Cerrar</button>
+  </div>
+
+  <div id="filtros-cat">
+    <input type="text" id="filtro-nombre" placeholder="Buscar por nombre o código...">
+    <select id="filtro-familia">
+      <option value="">Todas las familias</option>
+      <option value="ALIMENTACIÓN">Alimentación</option>
+      <option value="FRESCOS">Frescos</option>
+      <option value="AL PESO">Al peso</option>
+      <option value="BEBIDAS E INFUSIONES">Bebidas e infusiones</option>
+      <option value="CUIDADO PERSONAL">Cuidado personal</option>
+      <option value="HOGAR">Hogar</option>
+    </select>
+    <select id="filtro-activo">
+      <option value="">Todos</option>
+      <option value="1">Activos</option>
+      <option value="0">Inactivos</option>
+    </select>
+    <button id="btn-filtrar-cat">🔍 Filtrar</button>
+    <button id="btn-nuevo-producto">➕ Nuevo producto</button>
+  </div>
+
+  <div id="contenedor-cat">
+    <table id="tabla-cat">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Familia</th>
+          <th>Precio venta</th>
+          <th>Precio coste</th>
+          <th>IVA</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-cat"></tbody>
+    </table>
+  </div>
+
+  <div id="acciones-cat">
+    <button id="btn-editar-producto">✏️ Editar</button>
+    <button id="btn-toggle-producto">🔄 Activar / Desactivar</button>
+    <span id="total-productos-cat">0 productos</span>
+  </div>
+
+  <!-- Modal producto -->
+  <div id="modal-producto" style="display:none">
+    <div id="modal-producto-overlay"></div>
+    <div id="modal-producto-ventana">
+      <h3 id="modal-producto-titulo">Nuevo producto</h3>
+      <div class="prod-grupo">
+        <label>Código</label>
+        <input type="text" id="prod-codigo">
+      </div>
+      <div class="prod-grupo">
+        <label>Nombre</label>
+        <input type="text" id="prod-nombre">
+      </div>
+      <div class="prod-grupo">
+        <label>Familia</label>
+        <select id="prod-familia">
+          <option value="ALIMENTACIÓN">Alimentación</option>
+          <option value="FRESCOS">Frescos</option>
+          <option value="AL PESO">Al peso</option>
+          <option value="BEBIDAS E INFUSIONES">Bebidas e infusiones</option>
+          <option value="CUIDADO PERSONAL">Cuidado personal</option>
+          <option value="HOGAR">Hogar</option>
+        </select>
+      </div>
+      <div class="prod-grupo">
+        <label>Tipo de venta</label>
+        <select id="prod-tipo">
+          <option value="UNIDAD">Por unidad</option>
+          <option value="PESO">Por peso (kg)</option>
+        </select>
+      </div>
+      <div class="prod-grupo">
+        <label>Precio venta (sin IVA)</label>
+        <input type="text" id="prod-precio-venta">
+      </div>
+      <div class="prod-grupo">
+        <label>Precio coste</label>
+        <input type="text" id="prod-precio-coste">
+      </div>
+      <div class="prod-grupo">
+        <label>IVA</label>
+        <select id="prod-iva">
+          <option value="1">4% — Superreducido</option>
+          <option value="2">10% — Reducido</option>
+          <option value="3">21% — General</option>
+          <option value="4">0% — Exento</option>
+        </select>
+      </div>
+      <div id="modal-producto-botones">
+        <button id="btn-prod-cancelar">Cancelar</button>
+        <button id="btn-prod-guardar">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/catalogo.js"></script>
+</body>
+</html>

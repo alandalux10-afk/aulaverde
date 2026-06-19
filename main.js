@@ -348,3 +348,81 @@ ipcMain.handle('modificar-venta', (event, idVenta, lineas) => {
     return { ok: false, mensaje: e.message }
   }
 })
+ipcMain.handle('obtener-productos-catalogo', (event, filtros) => {
+  const db = getDB()
+  let sql = `
+    SELECT p.id_producto, p.codigo, p.nombre, p.familia, p.tipo_venta,
+    p.precio_venta, p.precio_coste, p.activo, p.id_iva, t.porcentaje as porcentaje_iva
+    FROM PRODUCTOS p
+    JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
+    WHERE 1=1
+  `
+  if (filtros.nombre) sql += ` AND (p.nombre LIKE '%${filtros.nombre}%' OR p.codigo LIKE '%${filtros.nombre}%')`
+  if (filtros.familia) sql += ` AND p.familia = '${filtros.familia}'`
+  if (filtros.activo !== '') sql += ` AND p.activo = ${filtros.activo}`
+  sql += ' ORDER BY p.codigo ASC'
+
+  const result = db.exec(sql)
+  if (!result.length) return []
+  const cols = result[0].columns
+  return result[0].values.map(row => {
+    const obj = {}
+    cols.forEach((col, i) => obj[col] = row[i])
+    return obj
+  })
+})
+
+ipcMain.handle('crear-producto', (event, datos) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    db.run(
+      'INSERT INTO PRODUCTOS (codigo, nombre, familia, tipo_venta, precio_venta, precio_coste, id_iva, activo) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
+      [datos.codigo, datos.nombre, datos.familia, datos.tipo_venta, datos.precio_venta, datos.precio_coste, datos.id_iva]
+    )
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('editar-producto', (event, idProducto, datos) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    db.run(
+      'UPDATE PRODUCTOS SET codigo=?, nombre=?, familia=?, tipo_venta=?, precio_venta=?, precio_coste=?, id_iva=? WHERE id_producto=?',
+      [datos.codigo, datos.nombre, datos.familia, datos.tipo_venta, datos.precio_venta, datos.precio_coste, datos.id_iva, idProducto]
+    )
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('toggle-producto', (event, idProducto, nuevoEstado) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    db.run('UPDATE PRODUCTOS SET activo=? WHERE id_producto=?', [nuevoEstado, idProducto])
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('abrir-catalogo', () => {
+  const win = new BrowserWindow({
+    width: 1000,
+    height: 700,
+    title: 'Catálogo de productos - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/catalogo.html')
+})
