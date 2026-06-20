@@ -2,17 +2,13 @@ const path = require('path')
 const fs = require('fs')
 const { BrowserWindow } = require('electron')
 
-function imprimirTicket(venta, lineas, configuracion) {
-  return new Promise((resolve, reject) => {
-    try {
-      const logoBase64 = fs.readFileSync(path.join(__dirname, '../logo.png')).toString('base64')
-
-      let lineasHtml = ''
-      lineas.forEach(l => {
-        lineasHtml += '<tr><td style="width:60%">' + (l.nombre_producto || '').substring(0, 22) + '</td><td style="text-align:center;width:15%">' + l.cantidad + '</td><td style="text-align:right;width:25%">' + Number(l.total_linea).toFixed(2) + '</td></tr>'
-      })
-
-      const html = `<!DOCTYPE html>
+function generarHtmlTicket(venta, lineas, configuracion) {
+  const logoBase64 = fs.readFileSync(path.join(__dirname, '../logo.png')).toString('base64')
+  let lineasHtml = ''
+  lineas.forEach(l => {
+    lineasHtml += '<tr><td style="width:60%">' + (l.nombre_producto || '').substring(0, 22) + '</td><td style="text-align:center;width:15%">' + l.cantidad + '</td><td style="text-align:right;width:25%">' + Number(l.total_linea).toFixed(2) + '</td></tr>'
+  })
+  return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -56,17 +52,20 @@ td { padding: 1px 0; vertical-align: top; }
 <div class="pie">www.aulaverde.es</div>
 </body>
 </html>`
+}
 
+function imprimirTicket(venta, lineas, configuracion) {
+  return new Promise((resolve, reject) => {
+    try {
+      const html = generarHtmlTicket(venta, lineas, configuracion)
       const tmpPath = path.join(__dirname, '../../data/ticket_tmp.html')
       fs.writeFileSync(tmpPath, html)
-
       const win = new BrowserWindow({
         width: 320,
         height: 900,
         show: false,
         webPreferences: { nodeIntegration: false }
       })
-
       win.loadFile(tmpPath)
       win.webContents.on('did-finish-load', () => {
         setTimeout(() => {
@@ -74,7 +73,8 @@ td { padding: 1px 0; vertical-align: top; }
             silent: true,
             printBackground: false,
             deviceName: 'appPOS80AMUSE',
-            margins: { marginType: 'none' }, pageSize: { width: 80000, height: 297000 }
+            margins: { marginType: 'none' },
+            pageSize: { width: 80000, height: 297000 }
           }, (success, reason) => {
             win.close()
             if (success) resolve({ ok: true })
@@ -88,4 +88,4 @@ td { padding: 1px 0; vertical-align: top; }
   })
 }
 
-module.exports = { imprimirTicket }
+module.exports = { imprimirTicket, generarHtmlTicket }

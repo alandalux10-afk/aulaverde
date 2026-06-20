@@ -92,6 +92,13 @@ document.getElementById('btn-reimprimir').addEventListener('click', async () => 
     alert('Error al reimprimir: ' + resultado.mensaje)
   }
 })
+document.getElementById('btn-vista-previa').addEventListener('click', async () => {
+  if (!ventaSeleccionada) {
+    alert('Selecciona una venta para ver la vista previa')
+    return
+  }
+  await ipcRenderer.invoke('abrir-vista-previa', ventaSeleccionada.id_venta, ventaSeleccionada.tipo_documento)
+})
 document.getElementById('btn-cerrar-consultas').addEventListener('click', () => {
 	window.close()
 })
