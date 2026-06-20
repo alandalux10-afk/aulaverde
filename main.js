@@ -426,3 +426,17 @@ ipcMain.handle('abrir-catalogo', () => {
   })
   win.loadFile('src/html/catalogo.html')
 })
+ipcMain.handle('abrir-nueva-venta', () => {
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 1024,
+    minHeight: 600,
+    title: 'Aula Verde TPV',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/tpv.html')
+})
