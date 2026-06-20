@@ -347,6 +347,9 @@ async function importarProductos() {
   }
 }
 
+document.getElementById('btn-nueva-venta').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-nueva-venta')
+})
 document.getElementById('btn-consultas').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-consultas')
 })
