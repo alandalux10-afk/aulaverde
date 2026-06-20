@@ -132,7 +132,6 @@ ipcMain.handle('obtener-resumen', (event, fecha) => {
   if (top.length && top[0].values.length) {
     top[0].values.forEach(row => topProductos.push({ nombre: row[0], cantidad: row[1], total: row[2] }))
   }
-// Calcular beneficio estimado
   const beneficioResult = db.exec(`
     SELECT SUM((lv.precio_unitario - COALESCE(p.precio_coste, 0)) * lv.cantidad) as beneficio
     FROM LINEAS_VENTA lv
@@ -143,7 +142,6 @@ ipcMain.handle('obtener-resumen', (event, fecha) => {
   const beneficio = beneficioResult.length && beneficioResult[0].values[0][0]
     ? beneficioResult[0].values[0][0]
     : 0
-
   return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos, beneficio }
 })
 
@@ -348,6 +346,7 @@ ipcMain.handle('modificar-venta', (event, idVenta, lineas) => {
     return { ok: false, mensaje: e.message }
   }
 })
+
 ipcMain.handle('obtener-productos-catalogo', (event, filtros) => {
   const db = getDB()
   let sql = `
@@ -361,7 +360,6 @@ ipcMain.handle('obtener-productos-catalogo', (event, filtros) => {
   if (filtros.familia) sql += ` AND p.familia = '${filtros.familia}'`
   if (filtros.activo !== '') sql += ` AND p.activo = ${filtros.activo}`
   sql += ' ORDER BY p.codigo ASC'
-
   const result = db.exec(sql)
   if (!result.length) return []
   const cols = result[0].columns
@@ -426,6 +424,7 @@ ipcMain.handle('abrir-catalogo', () => {
   })
   win.loadFile('src/html/catalogo.html')
 })
+
 ipcMain.handle('abrir-nueva-venta', () => {
   const win = new BrowserWindow({
     width: 1280,
@@ -439,4 +438,77 @@ ipcMain.handle('abrir-nueva-venta', () => {
     }
   })
   win.loadFile('src/html/tpv.html')
+})
+
+ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
+  try {
+    const db = getDB()
+    const ventaResult = db.exec(`
+      SELECT v.*, f.nombre as forma_pago
+      FROM VENTAS v
+      JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago
+      WHERE v.id_venta = ${idVenta}
+    `)
+    if (!ventaResult.length) return { ok: false }
+    const cols = ventaResult[0].columns
+    const venta = {}
+    ventaResult[0].values[0].forEach((val, i) => venta[cols[i]] = val)
+
+    const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ${idVenta} ORDER BY numero_linea`)
+    const lineas = []
+    if (lineasResult.length && lineasResult[0].values.length) {
+      const lCols = lineasResult[0].columns
+      lineasResult[0].values.forEach(row => {
+        const l = {}
+        lCols.forEach((col, i) => l[col] = row[i])
+        lineas.push(l)
+      })
+    }
+
+    const cfgResult = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
+    const cfg = {}
+    if (cfgResult.length && cfgResult[0].values.length) {
+      const cCols = cfgResult[0].columns
+      cfgResult[0].values[0].forEach((val, i) => cfg[cCols[i]] = val)
+    }
+
+    let html
+    if (tipoDocumento === 'FACTURA_SIMPLIFICADA') {
+      const { generarHtmlFactura } = require('./src/js/factura')
+      html = generarHtmlFactura(venta, lineas, cfg)
+    } else {
+      const { generarHtmlTicket } = require('./src/js/impresora')
+      html = generarHtmlTicket(venta, lineas, cfg)
+    }
+
+    const fs = require('fs')
+    const pathMod = require('path')
+    const tmpPath = pathMod.join(__dirname, 'data/vista_previa_tmp.html')
+    fs.writeFileSync(tmpPath, html)
+
+    const ancho = tipoDocumento === 'FACTURA_SIMPLIFICADA' ? 794 : 420
+    const win = new BrowserWindow({
+      width: ancho,
+      height: 850,
+      title: 'Vista previa — ' + venta.numero_documento,
+      show: false,
+      webPreferences: { nodeIntegration: false, contextIsolation: true }
+    })
+    win.loadFile(tmpPath)
+    win.once('ready-to-show', () => {
+      win.show()
+    })
+    win.webContents.on('did-finish-load', () => {
+      win.webContents.executeJavaScript(`
+        const btn = document.createElement('button')
+        btn.textContent = '💾 Guardar como PDF'
+        btn.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:10px 20px;background:#2d6a2d;color:white;border:none;border-radius:4px;font-size:14px;font-weight:bold;cursor:pointer;z-index:9999;'
+        btn.onclick = () => window.print()
+        document.body.appendChild(btn)
+      `)
+    })
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
 })
