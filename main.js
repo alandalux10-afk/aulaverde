@@ -374,6 +374,10 @@ ipcMain.handle('crear-producto', (event, datos) => {
   try {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
+    const existe = db.exec(`SELECT id_producto FROM PRODUCTOS WHERE codigo = '${datos.codigo}'`)
+    if (existe.length && existe[0].values.length) {
+      return { ok: false, mensaje: 'Ya existe un producto con el código ' + datos.codigo }
+    }
     db.run(
       'INSERT INTO PRODUCTOS (codigo, nombre, familia, tipo_venta, precio_venta, precio_coste, id_iva, activo) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
       [datos.codigo, datos.nombre, datos.familia, datos.tipo_venta, datos.precio_venta, datos.precio_coste, datos.id_iva]
