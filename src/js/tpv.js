@@ -235,6 +235,11 @@ function abrirCobro() {
     alert('No hay productos en la venta')
     return
   }
+  const totalVenta = lineas.reduce((acc, l) => acc + l.total, 0)
+  if (totalVenta === 0) {
+    const confirmar = confirm('El total de la venta es 0,00 €. ¿Deseas continuar?')
+    if (!confirmar) return
+  }
   const total = lineas.reduce((acc, l) => acc + l.total, 0)
   document.getElementById('cobro-total').textContent = formatearEuros(total)
   document.getElementById('cobro-efectivo').value = ''
