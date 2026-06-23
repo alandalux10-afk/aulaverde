@@ -21,6 +21,59 @@ function createWindow() {
     }
   })
   win.loadFile('src/html/tpv.html')
+
+  win.on('close', (e) => {
+    e.preventDefault()
+    const { dialog } = require('electron')
+    dialog.showMessageBox(win, {
+      type: 'question',
+      buttons: ['Sí, hacer copia', 'No, salir sin copia', 'Cancelar'],
+      defaultId: 0,
+      cancelId: 2,
+      title: 'Copia de seguridad',
+      message: '¿Deseas hacer una copia de seguridad antes de cerrar?',
+      detail: 'Se guardará en Google Drive con la fecha de hoy.'
+    }).then(({ response }) => {
+      if (response === 2) return
+      if (response === 0) {
+        const fs = require('fs')
+        const pathMod = require('path')
+        const ahora = new Date()
+        const año = ahora.getFullYear()
+        const mes = String(ahora.getMonth() + 1).padStart(2, '0')
+        const dia = String(ahora.getDate()).padStart(2, '0')
+        const sufijo = `${año}${mes}${dia}`
+        const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
+        const carpetaDestino = 'G:\\Mi unidad\\AulaVerde Backups'
+        const destino = pathMod.join(carpetaDestino, `aulaverde_${sufijo}.db`)
+        try {
+          if (!fs.existsSync(carpetaDestino)) {
+            fs.mkdirSync(carpetaDestino, { recursive: true })
+          }
+          fs.copyFileSync(origen, destino)
+          dialog.showMessageBox({
+            type: 'info',
+            title: 'Copia guardada',
+            message: '✅ Copia de seguridad guardada correctamente.',
+            detail: destino
+          }).then(() => {
+            win.destroy()
+          })
+        } catch (err) {
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Error',
+            message: '❌ No se pudo guardar la copia.',
+            detail: err.message
+          }).then(() => {
+            win.destroy()
+          })
+        }
+      } else {
+        win.destroy()
+      }
+    })
+  })
 }
 
 app.whenReady().then(async () => {
