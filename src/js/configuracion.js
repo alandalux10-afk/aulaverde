@@ -47,6 +47,25 @@ document.getElementById('btn-backup').addEventListener('click', async () => {
     alert('❌ Error al hacer la copia: ' + resultado.mensaje)
   }
 })
+document.getElementById('btn-importar-csv').addEventListener('click', async () => {
+  const confirmar = confirm('¿Importar productos desde el CSV? Esto reemplazará todos los productos actuales.')
+  if (!confirmar) return
+  const resultado = await ipcRenderer.invoke('importar-productos')
+  if (resultado.ok) {
+    alert(`✅ Importación completada:\n${resultado.importados} productos importados\n${resultado.errores} errores`)
+  } else {
+    alert('❌ Error: ' + resultado.mensaje)
+  }
+})
+
+document.getElementById('btn-exportar-csv').addEventListener('click', async () => {
+  const resultado = await ipcRenderer.invoke('exportar-csv')
+  if (resultado.ok) {
+    alert('✅ CSV exportado correctamente en:\n' + resultado.ruta)
+  } else {
+    alert('❌ Error al exportar: ' + resultado.mensaje)
+  }
+})
 document.getElementById('btn-cerrar').addEventListener('click', () => {
   window.close()
 })

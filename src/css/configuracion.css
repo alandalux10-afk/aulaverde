@@ -112,3 +112,32 @@ body {
 #btn-backup:hover {
   background: #1557b0;
 }
+#btn-importar-csv {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #e57373;
+  color: white;
+}
+
+#btn-importar-csv:hover {
+  background: #c62828;
+}
+
+#btn-exportar-csv {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #558b2f;
+  color: white;
+}
+
+#btn-exportar-csv:hover {
+  background: #33691e;
+}

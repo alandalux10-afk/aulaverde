@@ -595,3 +595,35 @@ ipcMain.handle('hacer-backup', () => {
     return { ok: false, mensaje: e.message }
   }
 })
+ipcMain.handle('exportar-csv', () => {
+  try {
+    const db = getDB()
+    const fs = require('fs')
+    const pathMod = require('path')
+
+    const result = db.exec(`
+      SELECT p.codigo, p.nombre, p.familia, p.tipo_venta,
+      p.precio_venta, p.precio_coste, p.activo, t.porcentaje as iva
+      FROM PRODUCTOS p
+      JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
+      ORDER BY p.codigo ASC
+    `)
+
+    if (!result.length) return { ok: false, mensaje: 'No hay productos' }
+
+    const cols = result[0].columns
+    let csv = cols.join(';') + '\n'
+    result[0].values.forEach(row => {
+      csv += row.map(v => (v === null ? '' : String(v).replace(/;/g, ','))).join(';') + '\n'
+    })
+
+    const ahora = new Date()
+    const sufijo = `${ahora.getFullYear()}${String(ahora.getMonth()+1).padStart(2,'0')}${String(ahora.getDate()).padStart(2,'0')}`
+    const ruta = pathMod.join(__dirname, `data/productos_export_${sufijo}.csv`)
+    fs.writeFileSync(ruta, '\uFEFF' + csv, 'utf8')
+
+    return { ok: true, ruta }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
