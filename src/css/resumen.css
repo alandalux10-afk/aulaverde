@@ -1,141 +1,136 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+  color: #333;
 }
 
 #cabecera-resumen {
-  background-color: #2d6a2d;
+  background: #2d6a2d;
   color: white;
-  padding: 10px 16px;
+  padding: 12px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 50px;
 }
 
-#titulo-resumen {
-  font-size: 18px;
-  font-weight: bold;
-}
+#titulo-resumen { font-size: 18px; font-weight: 600; }
 
 #btn-cerrar-resumen {
-  background-color: #e57373;
+  background: rgba(255,255,255,0.25);
   color: white;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.4);
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-#btn-cerrar-resumen:hover {
-  background-color: #c62828;
+#filtros-resumen {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 16px;
+  background: white;
+  border-bottom: 1px solid #ddd;
+  flex-wrap: wrap;
 }
+
+#filtros-resumen label {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#filtros-resumen input {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+#filtros-resumen button {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#btn-filtrar-resumen { background: #2d6a2d; color: white; }
+#btn-hoy-resumen { background: #e0e0e0; color: #333; }
 
 #fecha-resumen {
-  background: white;
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
-  border-bottom: 1px solid #ccc;
+  background: white;
+  border-bottom: 1px solid #eee;
 }
 
-#contenido-resumen {
-  flex: 1;
-  padding: 16px;
-  overflow-y: auto;
-}
 #contenedor-resumen {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
   padding: 16px;
   justify-content: center;
 }
 
 .tarjeta {
   background: white;
-  border-radius: 10px;
-  padding: 20px;
-  width: 160px;
+  border-radius: 8px;
+  padding: 16px 20px;
+  min-width: 140px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  flex: 1;
 }
 
 .tarjeta-verde {
-  background-color: #2d6a2d;
+  background: #2d6a2d;
   color: white;
 }
 
-.tarjeta-icono {
-  font-size: 28px;
-  margin-bottom: 8px;
-}
-
-.tarjeta-valor {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 4px;
-  color: #2d6a2d;
-}
-
-.tarjeta-verde .tarjeta-valor {
-  color: white;
-}
-
-.tarjeta-label {
-  font-size: 12px;
-  color: #666;
-}
-
-.tarjeta-verde .tarjeta-label {
-  color: #c8e6c9;
-}
+.tarjeta-icono { font-size: 24px; margin-bottom: 6px; }
+.tarjeta-valor { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.tarjeta-label { font-size: 12px; opacity: 0.8; }
 
 #contenedor-top-productos {
-  padding: 0 16px 16px;
-  flex: 1;
-  overflow-y: auto;
+  margin: 0 16px 16px;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 #contenedor-top-productos h3 {
   color: #2d6a2d;
-  margin-bottom: 10px;
-  font-size: 16px;
+  margin-bottom: 12px;
+  font-size: 15px;
 }
 
 #tabla-top-productos {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border-radius: 6px;
-  overflow: hidden;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-#tabla-top-productos thead {
-  background-color: #2d6a2d;
+#tabla-top-productos thead tr {
+  background: #2d6a2d;
   color: white;
 }
 
-#tabla-top-productos th {
-  padding: 8px;
-  text-align: center;
+#tabla-top-productos th,
+#tabla-top-productos td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
-#tabla-top-productos td {
-  padding: 8px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
+#tabla-top-productos tbody tr:hover {
+  background: #f1f8e9;
 }
