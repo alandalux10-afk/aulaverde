@@ -39,6 +39,14 @@ document.getElementById('btn-guardar').addEventListener('click', async () => {
 })
 
 // Cerrar ventana
+document.getElementById('btn-backup').addEventListener('click', async () => {
+  const resultado = await ipcRenderer.invoke('hacer-backup')
+  if (resultado.ok) {
+    alert('✅ Copia de seguridad guardada en:\n' + resultado.ruta)
+  } else {
+    alert('❌ Error al hacer la copia: ' + resultado.mensaje)
+  }
+})
 document.getElementById('btn-cerrar').addEventListener('click', () => {
   window.close()
 })
