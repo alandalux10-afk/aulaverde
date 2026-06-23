@@ -516,3 +516,29 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
     return { ok: false, mensaje: e.message }
   }
 })
+ipcMain.handle('hacer-backup', () => {
+  try {
+    const fs = require('fs')
+    const pathMod = require('path')
+
+    const ahora = new Date()
+    const año = ahora.getFullYear()
+    const mes = String(ahora.getMonth() + 1).padStart(2, '0')
+    const dia = String(ahora.getDate()).padStart(2, '0')
+    const sufijo = `${año}${mes}${dia}`
+
+    const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
+    const carpetaDestino = 'G:\\Mi unidad\\AulaVerde Backups'
+    const nombreArchivo = `aulaverde_${sufijo}.db`
+    const destino = pathMod.join(carpetaDestino, nombreArchivo)
+
+    if (!fs.existsSync(carpetaDestino)) {
+      fs.mkdirSync(carpetaDestino, { recursive: true })
+    }
+
+    fs.copyFileSync(origen, destino)
+    return { ok: true, ruta: destino }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})

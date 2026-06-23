@@ -98,3 +98,17 @@ body {
   color: #721c24;
   display: block;
 }
+#btn-backup {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #1a73e8;
+  color: white;
+}
+
+#btn-backup:hover {
+  background: #1557b0;
+}
