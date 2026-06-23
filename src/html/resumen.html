@@ -6,46 +6,47 @@
   <link rel="stylesheet" href="../css/resumen.css">
 </head>
 <body>
-
   <header id="cabecera-resumen">
     <span id="titulo-resumen">📊 Resumen del día</span>
     <button id="btn-cerrar-resumen">✕ Cerrar</button>
   </header>
 
+  <div id="filtros-resumen">
+    <label>Desde: <input type="date" id="resumen-desde"></label>
+    <label>Hasta: <input type="date" id="resumen-hasta"></label>
+    <button id="btn-filtrar-resumen">🔍 Filtrar</button>
+    <button id="btn-hoy-resumen">Hoy</button>
+  </div>
+
   <div id="fecha-resumen"></div>
 
   <div id="contenedor-resumen">
-
     <div class="tarjeta">
       <div class="tarjeta-icono">🛒</div>
       <div class="tarjeta-valor" id="num-operaciones">0</div>
       <div class="tarjeta-label">Operaciones</div>
     </div>
-
     <div class="tarjeta tarjeta-verde">
       <div class="tarjeta-icono">💰</div>
       <div class="tarjeta-valor" id="total-ventas">0,00 €</div>
       <div class="tarjeta-label">Total ventas</div>
     </div>
-
     <div class="tarjeta">
       <div class="tarjeta-icono">💵</div>
       <div class="tarjeta-valor" id="ventas-efectivo">0,00 €</div>
       <div class="tarjeta-label">Efectivo</div>
     </div>
-
     <div class="tarjeta">
       <div class="tarjeta-icono">💳</div>
       <div class="tarjeta-valor" id="ventas-tarjeta">0,00 €</div>
       <div class="tarjeta-label">Tarjeta</div>
     </div>
-
     <div class="tarjeta">
       <div class="tarjeta-icono">🎫</div>
       <div class="tarjeta-valor" id="ticket-medio">0,00 €</div>
       <div class="tarjeta-label">Ticket medio</div>
     </div>
-<div class="tarjeta tarjeta-verde">
+    <div class="tarjeta tarjeta-verde">
       <div class="tarjeta-icono">📈</div>
       <div class="tarjeta-valor" id="beneficio-estimado">0,00 €</div>
       <div class="tarjeta-label">Beneficio estimado</div>
@@ -55,11 +56,10 @@
       <div class="tarjeta-valor" id="ventas-pendientes">0</div>
       <div class="tarjeta-label">Pendientes de cobro</div>
     </div>
-
   </div>
 
   <div id="contenedor-top-productos">
-    <h3>🏆 Productos más vendidos hoy</h3>
+    <h3>🏆 Productos más vendidos en el período</h3>
     <table id="tabla-top-productos">
       <thead>
         <tr>
@@ -68,8 +68,7 @@
           <th>Total</th>
         </tr>
       </thead>
-      <tbody id="cuerpo-top-productos">
-      </tbody>
+      <tbody id="cuerpo-top-productos"></tbody>
     </table>
   </div>
 

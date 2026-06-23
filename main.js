@@ -627,3 +627,38 @@ ipcMain.handle('exportar-csv', () => {
     return { ok: false, mensaje: e.message }
   }
 })
+ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
+  const db = getDB()
+  const ventas = db.exec("SELECT v.total_venta, v.estado, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha >= '" + desde + "' AND v.fecha <= '" + hasta + "'")
+  let numOperaciones = 0, totalVentas = 0, efectivo = 0, tarjeta = 0, pendientes = 0
+  if (ventas.length && ventas[0].values.length) {
+    ventas[0].values.forEach(row => {
+      const total = row[0], estado = row[1], forma = row[2]
+      numOperaciones++
+      if (estado === 'COBRADO') {
+        totalVentas += total
+        if (forma === 'Efectivo') efectivo += total
+        else tarjeta += total
+      } else {
+        pendientes++
+      }
+    })
+  }
+  const ticketMedio = numOperaciones > 0 ? totalVentas / numOperaciones : 0
+  const top = db.exec("SELECT lv.nombre_producto, SUM(lv.cantidad) as cantidad, SUM(lv.total_linea) as total FROM LINEAS_VENTA lv JOIN VENTAS v ON lv.id_venta = v.id_venta WHERE v.fecha >= '" + desde + "' AND v.fecha <= '" + hasta + "' GROUP BY lv.nombre_producto ORDER BY cantidad DESC LIMIT 5")
+  const topProductos = []
+  if (top.length && top[0].values.length) {
+    top[0].values.forEach(row => topProductos.push({ nombre: row[0], cantidad: row[1], total: row[2] }))
+  }
+  const beneficioResult = db.exec(`
+    SELECT SUM((lv.precio_unitario - COALESCE(p.precio_coste, 0)) * lv.cantidad) as beneficio
+    FROM LINEAS_VENTA lv
+    JOIN VENTAS v ON lv.id_venta = v.id_venta
+    JOIN PRODUCTOS p ON lv.codigo_producto = p.codigo
+    WHERE v.fecha >= '${desde}' AND v.fecha <= '${hasta}' AND v.estado = 'COBRADO'
+  `)
+  const beneficio = beneficioResult.length && beneficioResult[0].values[0][0]
+    ? beneficioResult[0].values[0][0]
+    : 0
+  return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos, beneficio }
+})
