@@ -21,6 +21,9 @@ async function inicializarDB() {
     console.log('Base de datos creada correctamente')
   }
 
+  // Se ejecuta siempre: añade tablas nuevas si no existen
+  migrarTablas()
+
   return db
 }
 
@@ -113,6 +116,73 @@ function crearTablas() {
   `)
 
   console.log('Tablas creadas correctamente')
+}
+
+function migrarTablas() {
+  // Tablas del módulo de compras a proveedores
+  // Se crean solo si no existen — seguro de ejecutar siempre
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS PROVEEDORES (
+      id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre VARCHAR(255) NOT NULL,
+      nif VARCHAR(20),
+      direccion VARCHAR(255),
+      telefono VARCHAR(50),
+      email VARCHAR(255),
+      activo BOOLEAN NOT NULL DEFAULT 1
+    )
+  `)
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS COMPRAS (
+      id_compra INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_proveedor INTEGER NOT NULL,
+      numero_factura VARCHAR(50) NOT NULL,
+      fecha DATE NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'PENDIENTE',
+      base_imponible DECIMAL(10,2),
+      total_iva DECIMAL(10,2),
+      total_compra DECIMAL(10,2),
+      pdf_path VARCHAR(500),
+      FOREIGN KEY (id_proveedor) REFERENCES PROVEEDORES(id_proveedor)
+    )
+  `)
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS LINEAS_COMPRA (
+      id_linea INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_compra INTEGER NOT NULL,
+      numero_linea INTEGER,
+      nombre_proveedor VARCHAR(255),
+      codigo_proveedor VARCHAR(100),
+      id_producto INTEGER,
+      cantidad DECIMAL(10,3),
+      precio_unitario DECIMAL(10,2),
+      porcentaje_iva DECIMAL(5,2),
+      importe_iva DECIMAL(10,2),
+      total_linea DECIMAL(10,2),
+      FOREIGN KEY (id_compra) REFERENCES COMPRAS(id_compra),
+      FOREIGN KEY (id_producto) REFERENCES PRODUCTOS(id_producto)
+    )
+  `)
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS PRODUCTOS_PROVEEDOR (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_proveedor INTEGER NOT NULL,
+      nombre_proveedor VARCHAR(255) NOT NULL,
+      codigo_proveedor VARCHAR(100),
+      id_producto INTEGER NOT NULL,
+      activo BOOLEAN NOT NULL DEFAULT 1,
+      UNIQUE(id_proveedor, nombre_proveedor),
+      FOREIGN KEY (id_proveedor) REFERENCES PROVEEDORES(id_proveedor),
+      FOREIGN KEY (id_producto) REFERENCES PRODUCTOS(id_producto)
+    )
+  `)
+
+  guardarDB()
+  console.log('Migración de tablas completada')
 }
 
 function insertarDatosIniciales() {
