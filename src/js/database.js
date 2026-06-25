@@ -181,6 +181,13 @@ function migrarTablas() {
     )
   `)
 
+  // Añadir columna api_key_anthropic si no existe todavía
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN api_key_anthropic VARCHAR(255)`)
+  } catch (e) {
+    // La columna ya existe, no hay que hacer nada
+  }
+
   guardarDB()
   console.log('Migración de tablas completada')
 }

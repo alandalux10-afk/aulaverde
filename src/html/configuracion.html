@@ -44,7 +44,15 @@
       <input type="text" id="impresora_factura">
     </div>
 
-   <div class="botones">
+    <div class="separador"></div>
+
+    <div class="grupo">
+      <label>🤖 Clave API Anthropic (para extracción de facturas)</label>
+      <input type="password" id="api_key_anthropic" placeholder="sk-ant-...">
+      <small>Esta clave se guarda localmente y nunca se comparte. Se usa para leer facturas PDF automáticamente.</small>
+    </div>
+
+    <div class="botones">
       <button id="btn-guardar">💾 Guardar</button>
       <button id="btn-backup">☁️ Copia de seguridad</button>
       <button id="btn-cerrar">✖ Cerrar</button>
@@ -53,6 +61,8 @@
       <button id="btn-importar-csv">📥 Importar CSV productos</button>
       <button id="btn-exportar-csv">📤 Exportar CSV productos</button>
     </div>
+
+  </div>
 
   <script src="../js/configuracion.js"></script>
 </body>

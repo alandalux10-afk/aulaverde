@@ -278,8 +278,7 @@ ipcMain.handle('guardar-configuracion', (event, datos) => {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
     db.run(
-      'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=? WHERE id_configuracion=1',
-      [
+'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=?, api_key_anthropic=? WHERE id_configuracion=1',      [
         datos.nombre_tienda,
         datos.razon_social,
         datos.nif_vendedor,
@@ -287,7 +286,8 @@ ipcMain.handle('guardar-configuracion', (event, datos) => {
         datos.telefono,
         datos.email,
         datos.impresora_ticket,
-        datos.impresora_factura
+        datos.impresora_factura,
+        datos.api_key_anthropic
       ]
     )
     guardarDB()
