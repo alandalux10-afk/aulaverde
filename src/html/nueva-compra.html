@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nueva compra - Aula Verde</title>
+  <link rel="stylesheet" href="../css/compras.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>📄 Nueva compra</h1>
+  </div>
+
+  <div class="contenedor">
+
+    <div class="seccion">
+      <h2>1. Selecciona el proveedor</h2>
+      <select id="selector-proveedor">
+        <option value="">— Elige un proveedor —</option>
+      </select>
+    </div>
+
+    <div class="seccion">
+      <h2>2. Sube la factura en PDF</h2>
+      <div id="zona-drop" onclick="document.getElementById('input-pdf').click()">
+        <div id="zona-drop-texto">
+          <span>📁 Haz clic aquí para seleccionar el PDF</span>
+          <small>o arrastra el archivo sobre esta zona</small>
+        </div>
+        <input type="file" id="input-pdf" accept=".pdf" style="display:none">
+      </div>
+      <div id="archivo-seleccionado" style="display:none">
+        <span id="nombre-archivo"></span>
+        <button id="btn-quitar-archivo">✖</button>
+      </div>
+    </div>
+
+    <div id="zona-estado" style="display:none">
+      <div id="mensaje-estado"></div>
+    </div>
+
+    <div class="botones">
+      <button class="btn-secundario" id="btn-cancelar">Cancelar</button>
+      <button class="btn-primario" id="btn-extraer" disabled>🤖 Extraer datos con IA</button>
+    </div>
+
+  </div>
+
+  <script src="../js/nueva-compra.js"></script>
+</body>
+</html>

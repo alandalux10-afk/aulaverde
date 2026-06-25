@@ -180,7 +180,12 @@ function migrarTablas() {
       FOREIGN KEY (id_producto) REFERENCES PRODUCTOS(id_producto)
     )
   `)
-
+// Añadir columna recargo_equivalencia a PROVEEDORES si no existe
+  try {
+    db.run(`ALTER TABLE PROVEEDORES ADD COLUMN recargo_equivalencia BOOLEAN NOT NULL DEFAULT 0`)
+  } catch (e) {
+    // La columna ya existe, no hay problema
+  }
   // Añadir columna api_key_anthropic si no existe todavía
   try {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN api_key_anthropic VARCHAR(255)`)

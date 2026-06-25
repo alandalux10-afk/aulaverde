@@ -278,7 +278,8 @@ ipcMain.handle('guardar-configuracion', (event, datos) => {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
     db.run(
-'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=?, api_key_anthropic=? WHERE id_configuracion=1',      [
+      'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=?, api_key_anthropic=? WHERE id_configuracion=1',
+      [
         datos.nombre_tienda,
         datos.razon_social,
         datos.nif_vendedor,
@@ -510,7 +511,6 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
     const cols = ventaResult[0].columns
     const venta = {}
     ventaResult[0].values[0].forEach((val, i) => venta[cols[i]] = val)
-
     const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ${idVenta} ORDER BY numero_linea`)
     const lineas = []
     if (lineasResult.length && lineasResult[0].values.length) {
@@ -521,14 +521,12 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
         lineas.push(l)
       })
     }
-
     const cfgResult = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
     const cfg = {}
     if (cfgResult.length && cfgResult[0].values.length) {
       const cCols = cfgResult[0].columns
       cfgResult[0].values[0].forEach((val, i) => cfg[cCols[i]] = val)
     }
-
     let html
     if (tipoDocumento === 'FACTURA_SIMPLIFICADA') {
       const { generarHtmlFactura } = require('./src/js/factura')
@@ -537,12 +535,10 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
       const { generarHtmlTicket } = require('./src/js/impresora')
       html = generarHtmlTicket(venta, lineas, cfg)
     }
-
     const fs = require('fs')
     const pathMod = require('path')
     const tmpPath = pathMod.join(__dirname, 'data/vista_previa_tmp.html')
     fs.writeFileSync(tmpPath, html)
-
     const ancho = tipoDocumento === 'FACTURA_SIMPLIFICADA' ? 794 : 420
     const win = new BrowserWindow({
       width: ancho,
@@ -552,9 +548,7 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
       webPreferences: { nodeIntegration: false, contextIsolation: true }
     })
     win.loadFile(tmpPath)
-    win.once('ready-to-show', () => {
-      win.show()
-    })
+    win.once('ready-to-show', () => { win.show() })
     win.webContents.on('did-finish-load', () => {
       win.webContents.executeJavaScript(`
         const btn = document.createElement('button')
@@ -686,6 +680,184 @@ ipcMain.handle('dialogo-error', async (event, mensaje) => {
   })
 })
 
+// ─── MÓDULO COMPRAS ─────────────────────────────────────────────────────────
+
+ipcMain.handle('importar-proveedores-excel', async (event) => {
+  try {
+    const { dialog } = require('electron')
+    const XLSX = require('xlsx')
+
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const { filePaths, canceled } = await dialog.showOpenDialog(win, {
+      title: 'Selecciona el Excel de proveedores',
+      filters: [{ name: 'Excel', extensions: ['xls', 'xlsx'] }],
+      properties: ['openFile']
+    })
+
+    if (canceled || !filePaths || filePaths.length === 0) {
+      return { ok: false, mensaje: 'No se seleccionó ningún archivo' }
+    }
+
+    const rutaExcel = filePaths[0]
+    const libro = XLSX.readFile(rutaExcel)
+    const hoja = libro.Sheets[libro.SheetNames[0]]
+    const filas = XLSX.utils.sheet_to_json(hoja)
+
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+
+    let importados = 0
+    let omitidos = 0
+
+    filas.forEach(fila => {
+      const nombre = (fila['Nombre'] || '').toString().trim()
+      if (!nombre) return
+
+      const existe = db.exec(`SELECT id_proveedor FROM PROVEEDORES WHERE nombre = '${nombre.replace(/'/g, "''")}'`)
+      if (existe.length && existe[0].values.length) {
+        omitidos++
+        return
+      }
+
+      const partesDireccion = [
+        fila['Dirección'] || '',
+        fila['C.P.'] ? String(Math.round(fila['C.P.'])).padStart(5, '0') : '',
+        fila['Población'] || '',
+        fila['Provincia'] || ''
+      ].map(s => s.toString().trim()).filter(s => s !== '' && s !== '0')
+      const direccion = partesDireccion.join(', ')
+
+      const nif = (fila['N.I.F.'] || '').toString().trim()
+      const telefono = fila['Teléfono'] ? String(Math.round(fila['Teléfono'])) : ''
+
+      db.run(
+        'INSERT INTO PROVEEDORES (nombre, nif, direccion, telefono, email, activo, recargo_equivalencia) VALUES (?, ?, ?, ?, ?, 1, 1)',
+        [nombre, nif, direccion, telefono, '']
+      )
+      importados++
+    })
+
+    guardarDB()
+    return { ok: true, importados, omitidos }
+
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('abrir-nueva-compra', () => {
+  const win = new BrowserWindow({
+    width: 720,
+    height: 620,
+    title: 'Nueva compra - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/nueva-compra.html')
+})
+
+ipcMain.handle('extraer-factura-pdf', async (event, datos) => {
+  try {
+    const fs = require('fs')
+    const pathMod = require('path')
+
+    const db = getDB()
+    const cfgResult = db.exec('SELECT api_key_anthropic FROM CONFIGURACION WHERE id_configuracion = 1')
+    if (!cfgResult.length || !cfgResult[0].values[0][0]) {
+      return { ok: false, mensaje: 'No hay clave API configurada. Ve a Configuración y añade tu clave API de Anthropic.' }
+    }
+    const apiKey = cfgResult[0].values[0][0]
+
+    const ahora = new Date()
+    const sufijo = `${ahora.getFullYear()}${String(ahora.getMonth()+1).padStart(2,'0')}${String(ahora.getDate()).padStart(2,'0')}_${Date.now()}`
+    const nombreArchivo = `factura_${sufijo}.pdf`
+    const carpetaLocal = 'C:\\AulaVerde Facturas'
+    const carpetaDrive = 'G:\\Mi unidad\\AulaVerde Facturas'
+    const rutaLocal = pathMod.join(carpetaLocal, nombreArchivo)
+
+    if (!fs.existsSync(carpetaLocal)) fs.mkdirSync(carpetaLocal, { recursive: true })
+    const bufferPdf = Buffer.from(datos.base64, 'base64')
+    fs.writeFileSync(rutaLocal, bufferPdf)
+
+    try {
+      if (!fs.existsSync(carpetaDrive)) fs.mkdirSync(carpetaDrive, { recursive: true })
+      fs.copyFileSync(rutaLocal, pathMod.join(carpetaDrive, nombreArchivo))
+    } catch (e) {
+      console.log('Google Drive no disponible, solo guardado local')
+    }
+
+    const fetch = require('electron').net.fetch
+    const respuesta = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'document',
+                source: {
+                  type: 'base64',
+                  media_type: 'application/pdf',
+                  data: datos.base64
+                }
+              },
+              {
+                type: 'text',
+                text: `Analiza esta factura de proveedor y extrae los datos en formato JSON.
+Responde ÚNICAMENTE con el JSON, sin texto adicional, sin explicaciones, sin bloques de código.
+
+El JSON debe tener exactamente esta estructura:
+{
+  "proveedor_nombre": "nombre del proveedor tal como aparece en la factura",
+  "proveedor_nif": "NIF o CIF del proveedor",
+  "numero_factura": "número de factura",
+  "fecha": "fecha en formato YYYY-MM-DD",
+  "lineas": [
+    {
+      "nombre_proveedor": "nombre del producto tal como aparece en la factura",
+      "codigo_proveedor": "referencia o código del producto, vacío si no hay",
+      "cantidad": 0.000,
+      "precio_unitario": 0.00,
+      "porcentaje_iva": 0.00,
+      "importe_iva": 0.00,
+      "total_linea": 0.00
+    }
+  ],
+  "base_imponible": 0.00,
+  "total_iva": 0.00,
+  "total_factura": 0.00
+}`
+              }
+            ]
+          }
+        ]
+      })
+    })
+
+    const json = await respuesta.json()
+    if (!respuesta.ok) {
+      return { ok: false, mensaje: 'Error de la API: ' + (json.error?.message || 'Error desconocido') }
+    }
+
+    const textoRespuesta = json.content[0].text.trim()
+    const datosFactura = JSON.parse(textoRespuesta)
+    return { ok: true, datos: datosFactura, rutaPdf: rutaLocal }
+
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
 // ─── MÓDULO PROVEEDORES ─────────────────────────────────────────────────────
 
 ipcMain.handle('abrir-proveedores', () => {
@@ -718,8 +890,8 @@ ipcMain.handle('crear-proveedor', (event, datos) => {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
     db.run(
-      'INSERT INTO PROVEEDORES (nombre, nif, direccion, telefono, email, activo) VALUES (?, ?, ?, ?, ?, 1)',
-      [datos.nombre, datos.nif, datos.direccion, datos.telefono, datos.email]
+      'INSERT INTO PROVEEDORES (nombre, nif, direccion, telefono, email, activo, recargo_equivalencia) VALUES (?, ?, ?, ?, ?, 1, ?)',
+      [datos.nombre, datos.nif, datos.direccion, datos.telefono, datos.email, datos.recargo_equivalencia]
     )
     guardarDB()
     return { ok: true }
@@ -733,8 +905,8 @@ ipcMain.handle('editar-proveedor', (event, idProveedor, datos) => {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
     db.run(
-      'UPDATE PROVEEDORES SET nombre=?, nif=?, direccion=?, telefono=?, email=? WHERE id_proveedor=?',
-      [datos.nombre, datos.nif, datos.direccion, datos.telefono, datos.email, idProveedor]
+      'UPDATE PROVEEDORES SET nombre=?, nif=?, direccion=?, telefono=?, email=?, recargo_equivalencia=? WHERE id_proveedor=?',
+      [datos.nombre, datos.nif, datos.direccion, datos.telefono, datos.email, datos.recargo_equivalencia, idProveedor]
     )
     guardarDB()
     return { ok: true }

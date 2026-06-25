@@ -21,6 +21,8 @@
         <option value="0">Inactivos</option>
       </select>
       <button class="btn-primario" onclick="abrirModalNuevo()">+ Nuevo proveedor</button>
+      <button class="btn-compra" onclick="nuevaCompra()">📄 Nueva compra</button>
+      <button class="btn-importar" onclick="importarProveedores()">📥 Importar Excel</button>
     </div>
 
     <table id="tabla-proveedores">
@@ -30,6 +32,7 @@
           <th>NIF</th>
           <th>Teléfono</th>
           <th>Email</th>
+          <th>Rec. Equiv.</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -63,6 +66,12 @@
       <div class="campo">
         <label>Email</label>
         <input type="text" id="campo-email" placeholder="proveedor@ejemplo.com">
+      </div>
+      <div class="campo campo-check">
+        <label>
+          <input type="checkbox" id="campo-recargo">
+          Proveedor con recargo de equivalencia
+        </label>
       </div>
 
       <div id="mensaje-error" class="mensaje-error" style="display:none"></div>
