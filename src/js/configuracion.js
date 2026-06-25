@@ -1,6 +1,5 @@
 const { ipcRenderer } = require('electron')
 
-// Cargar datos al abrir la pantalla
 async function cargarConfiguracion() {
   const cfg = await ipcRenderer.invoke('obtener-configuracion')
   if (cfg) {
@@ -12,10 +11,10 @@ async function cargarConfiguracion() {
     document.getElementById('email').value = cfg.email || ''
     document.getElementById('impresora_ticket').value = cfg.impresora_ticket || ''
     document.getElementById('impresora_factura').value = cfg.impresora_factura || ''
+    document.getElementById('api_key_anthropic').value = cfg.api_key_anthropic || ''
   }
 }
 
-// Guardar cambios
 document.getElementById('btn-guardar').addEventListener('click', async () => {
   const datos = {
     nombre_tienda: document.getElementById('nombre_tienda').value,
@@ -25,20 +24,18 @@ document.getElementById('btn-guardar').addEventListener('click', async () => {
     telefono: document.getElementById('telefono').value,
     email: document.getElementById('email').value,
     impresora_ticket: document.getElementById('impresora_ticket').value,
-    impresora_factura: document.getElementById('impresora_factura').value
+    impresora_factura: document.getElementById('impresora_factura').value,
+    api_key_anthropic: document.getElementById('api_key_anthropic').value
   }
 
   const resultado = await ipcRenderer.invoke('guardar-configuracion', datos)
-  const msg = document.getElementById('mensaje')
-
- if (resultado.ok) {
+  if (resultado.ok) {
     alert('✅ Configuración guardada correctamente')
   } else {
     alert('❌ Error al guardar: ' + resultado.mensaje)
   }
 })
 
-// Cerrar ventana
 document.getElementById('btn-backup').addEventListener('click', async () => {
   const resultado = await ipcRenderer.invoke('hacer-backup')
   if (resultado.ok) {
@@ -47,6 +44,7 @@ document.getElementById('btn-backup').addEventListener('click', async () => {
     alert('❌ Error al hacer la copia: ' + resultado.mensaje)
   }
 })
+
 document.getElementById('btn-importar-csv').addEventListener('click', async () => {
   const confirmar = confirm('¿Importar productos desde el CSV? Esto reemplazará todos los productos actuales.')
   if (!confirmar) return
@@ -66,6 +64,7 @@ document.getElementById('btn-exportar-csv').addEventListener('click', async () =
     alert('❌ Error al exportar: ' + resultado.mensaje)
   }
 })
+
 document.getElementById('btn-cerrar').addEventListener('click', () => {
   window.close()
 })
