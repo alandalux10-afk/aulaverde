@@ -314,7 +314,10 @@ document.getElementById('btn-cobro-aceptar').addEventListener('click', async () 
   const resultado = await ipcRenderer.invoke('guardar-venta', lineas, formaPagoSeleccionada, tipoDocumentoSeleccionado)
   cerrarCobro()
   if (resultado.ok) {
-    const imprimir = confirm('Venta cobrada\nDocumento: ' + resultado.numeroDocumento + '\n\n¿Imprimir documento?')
+    lineas = []
+    lineaSeleccionada = null
+    renderizarLineas()
+    const imprimir = await ipcRenderer.invoke('dialogo-imprimir', resultado.numeroDocumento)
     if (imprimir) {
       let resImp
       if (tipoDocumentoSeleccionado === 'FACTURA_SIMPLIFICADA') {
@@ -322,12 +325,16 @@ document.getElementById('btn-cobro-aceptar').addEventListener('click', async () 
       } else {
         resImp = await ipcRenderer.invoke('imprimir-ticket', resultado.venta, resultado.lineas, {})
       }
-      if (!resImp.ok) alert('Error al imprimir: ' + resImp.mensaje)
+      if (!resImp.ok) await ipcRenderer.invoke('dialogo-error', resImp.mensaje)
     }
-  }
-  lineas = []
-  lineaSeleccionada = null
-  renderizarLineas()
+   setTimeout(() => {
+      window.focus()
+      document.getElementById('input-busqueda').focus()
+      document.getElementById('input-busqueda').click()
+    }, 500)
+  } else {
+    await ipcRenderer.invoke('dialogo-error', resultado.mensaje)
+  } 
 })
 
 document.addEventListener('keydown', (e) => {

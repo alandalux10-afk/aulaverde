@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Proveedores - Aula Verde</title>
+  <link rel="stylesheet" href="../css/proveedores.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>Gestión de Proveedores</h1>
+  </div>
+
+  <div class="contenedor">
+
+    <div class="barra-acciones">
+      <input type="text" id="filtro-nombre" placeholder="Buscar por nombre..." oninput="filtrarProveedores()">
+      <select id="filtro-activo" onchange="filtrarProveedores()">
+        <option value="">Todos</option>
+        <option value="1">Activos</option>
+        <option value="0">Inactivos</option>
+      </select>
+      <button class="btn-primario" onclick="abrirModalNuevo()">+ Nuevo proveedor</button>
+    </div>
+
+    <table id="tabla-proveedores">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>NIF</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla"></tbody>
+    </table>
+
+  </div>
+
+  <!-- Modal alta/edición -->
+  <div id="modal-proveedor" class="modal-fondo" style="display:none">
+    <div class="modal-caja">
+      <h2 id="modal-titulo">Nuevo proveedor</h2>
+
+      <div class="campo">
+        <label>Nombre *</label>
+        <input type="text" id="campo-nombre" placeholder="Nombre del proveedor">
+      </div>
+      <div class="campo">
+        <label>NIF / CIF</label>
+        <input type="text" id="campo-nif" placeholder="B12345678">
+      </div>
+      <div class="campo">
+        <label>Dirección</label>
+        <input type="text" id="campo-direccion" placeholder="Dirección fiscal">
+      </div>
+      <div class="campo">
+        <label>Teléfono</label>
+        <input type="text" id="campo-telefono" placeholder="600 000 000">
+      </div>
+      <div class="campo">
+        <label>Email</label>
+        <input type="text" id="campo-email" placeholder="proveedor@ejemplo.com">
+      </div>
+
+      <div id="mensaje-error" class="mensaje-error" style="display:none"></div>
+
+      <div class="modal-botones">
+        <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn-primario" onclick="guardarProveedor()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/proveedores.js"></script>
+</body>
+</html>

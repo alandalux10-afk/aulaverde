@@ -662,3 +662,31 @@ ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
     : 0
   return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos, beneficio }
 })
+ipcMain.handle('dialogo-imprimir', async (event, numeroDocumento) => {
+  const { dialog } = require('electron')
+  const win = BrowserWindow.fromWebContents(
+    require('electron').webContents.fromId(event.sender.id)
+  )
+  const { response } = await dialog.showMessageBox(win, {
+    type: 'question',
+    buttons: ['Imprimir', 'No imprimir'],
+    defaultId: 0,
+    cancelId: 1,
+    title: 'Venta cobrada',
+    message: 'Venta cobrada correctamente',
+    detail: 'Documento: ' + numeroDocumento + '\n\n¿Deseas imprimir el documento?'
+  })
+  return response === 0
+})
+
+ipcMain.handle('dialogo-error', async (event, mensaje) => {
+  const { dialog } = require('electron')
+  const win = BrowserWindow.fromWebContents(
+    require('electron').webContents.fromId(event.sender.id)
+  )
+  await dialog.showMessageBox(win, {
+    type: 'error',
+    title: 'Error al imprimir',
+    message: mensaje
+  })
+})
