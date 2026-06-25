@@ -569,38 +569,35 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
     return { ok: false, mensaje: e.message }
   }
 })
+
 ipcMain.handle('hacer-backup', () => {
   try {
     const fs = require('fs')
     const pathMod = require('path')
-
     const ahora = new Date()
     const año = ahora.getFullYear()
     const mes = String(ahora.getMonth() + 1).padStart(2, '0')
     const dia = String(ahora.getDate()).padStart(2, '0')
     const sufijo = `${año}${mes}${dia}`
-
     const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
     const carpetaDestino = 'G:\\Mi unidad\\AulaVerde Backups'
     const nombreArchivo = `aulaverde_${sufijo}.db`
     const destino = pathMod.join(carpetaDestino, nombreArchivo)
-
     if (!fs.existsSync(carpetaDestino)) {
       fs.mkdirSync(carpetaDestino, { recursive: true })
     }
-
     fs.copyFileSync(origen, destino)
     return { ok: true, ruta: destino }
   } catch (e) {
     return { ok: false, mensaje: e.message }
   }
 })
+
 ipcMain.handle('exportar-csv', () => {
   try {
     const db = getDB()
     const fs = require('fs')
     const pathMod = require('path')
-
     const result = db.exec(`
       SELECT p.codigo, p.nombre, p.familia, p.tipo_venta,
       p.precio_venta, p.precio_coste, p.activo, t.porcentaje as iva
@@ -608,25 +605,22 @@ ipcMain.handle('exportar-csv', () => {
       JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
       ORDER BY p.codigo ASC
     `)
-
     if (!result.length) return { ok: false, mensaje: 'No hay productos' }
-
     const cols = result[0].columns
     let csv = cols.join(';') + '\n'
     result[0].values.forEach(row => {
       csv += row.map(v => (v === null ? '' : String(v).replace(/;/g, ','))).join(';') + '\n'
     })
-
     const ahora = new Date()
     const sufijo = `${ahora.getFullYear()}${String(ahora.getMonth()+1).padStart(2,'0')}${String(ahora.getDate()).padStart(2,'0')}`
     const ruta = pathMod.join(__dirname, `data/productos_export_${sufijo}.csv`)
     fs.writeFileSync(ruta, '\uFEFF' + csv, 'utf8')
-
     return { ok: true, ruta }
   } catch (e) {
     return { ok: false, mensaje: e.message }
   }
 })
+
 ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
   const db = getDB()
   const ventas = db.exec("SELECT v.total_venta, v.estado, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha >= '" + desde + "' AND v.fecha <= '" + hasta + "'")
@@ -662,6 +656,7 @@ ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
     : 0
   return { numOperaciones, totalVentas, efectivo, tarjeta, ticketMedio, pendientes, topProductos, beneficio }
 })
+
 ipcMain.handle('dialogo-imprimir', async (event, numeroDocumento) => {
   const { dialog } = require('electron')
   const win = BrowserWindow.fromWebContents(
@@ -689,4 +684,73 @@ ipcMain.handle('dialogo-error', async (event, mensaje) => {
     title: 'Error al imprimir',
     message: mensaje
   })
+})
+
+// ─── MÓDULO PROVEEDORES ─────────────────────────────────────────────────────
+
+ipcMain.handle('abrir-proveedores', () => {
+  const win = new BrowserWindow({
+    width: 900,
+    height: 650,
+    title: 'Proveedores - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/proveedores.html')
+})
+
+ipcMain.handle('obtener-proveedores', () => {
+  const db = getDB()
+  const result = db.exec('SELECT * FROM PROVEEDORES ORDER BY nombre ASC')
+  if (!result.length) return []
+  const cols = result[0].columns
+  return result[0].values.map(row => {
+    const obj = {}
+    cols.forEach((col, i) => obj[col] = row[i])
+    return obj
+  })
+})
+
+ipcMain.handle('crear-proveedor', (event, datos) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    db.run(
+      'INSERT INTO PROVEEDORES (nombre, nif, direccion, telefono, email, activo) VALUES (?, ?, ?, ?, ?, 1)',
+      [datos.nombre, datos.nif, datos.direccion, datos.telefono, datos.email]
+    )
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('editar-proveedor', (event, idProveedor, datos) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    db.run(
+      'UPDATE PROVEEDORES SET nombre=?, nif=?, direccion=?, telefono=?, email=? WHERE id_proveedor=?',
+      [datos.nombre, datos.nif, datos.direccion, datos.telefono, datos.email, idProveedor]
+    )
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
+
+ipcMain.handle('toggle-proveedor', (event, idProveedor, nuevoEstado) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+    db.run('UPDATE PROVEEDORES SET activo=? WHERE id_proveedor=?', [nuevoEstado, idProveedor])
+    guardarDB()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
 })
