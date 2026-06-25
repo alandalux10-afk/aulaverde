@@ -376,7 +376,9 @@ document.getElementById('btn-configuracion').addEventListener('click', () => {
 document.getElementById('btn-catalogo').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-catalogo')
 })
-
+document.getElementById('btn-proveedores').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-proveedores')
+})
 function abrirOpciones() {
   if (lineaSeleccionada === null) {
     alert('Selecciona una línea para editar')
