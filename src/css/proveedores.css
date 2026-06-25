@@ -30,6 +30,7 @@ body {
   gap: 12px;
   margin-bottom: 16px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .barra-acciones input[type="text"] {
@@ -37,7 +38,7 @@ body {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
-  width: 260px;
+  width: 220px;
 }
 
 .barra-acciones select {
@@ -75,6 +76,36 @@ body {
 
 .btn-secundario:hover {
   background: #cccccc;
+}
+
+.btn-compra {
+  background: #1565c0;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-compra:hover {
+  background: #0d47a1;
+}
+
+.btn-importar {
+  background: #e65100;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-importar:hover {
+  background: #bf360c;
 }
 
 .btn-toggle-activo {
@@ -175,6 +206,15 @@ tbody td {
   font-weight: 600;
 }
 
+.badge-recargo {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* Modal */
 .modal-fondo {
   position: fixed;
@@ -212,7 +252,7 @@ tbody td {
   color: #444;
 }
 
-.campo input {
+.campo input[type="text"] {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid #ccc;
@@ -220,9 +260,30 @@ tbody td {
   font-size: 14px;
 }
 
-.campo input:focus {
+.campo input[type="text"]:focus {
   outline: none;
   border-color: #2d6a2d;
+}
+
+.campo-check {
+  margin-top: 4px;
+}
+
+.campo-check label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+}
+
+.campo-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #2d6a2d;
+  cursor: pointer;
 }
 
 .mensaje-error {

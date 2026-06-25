@@ -1,0 +1,184 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.header {
+  background: #2d6a2d;
+  color: white;
+  padding: 16px 24px;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.contenedor {
+  padding: 24px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.seccion {
+  background: white;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.seccion h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2d6a2d;
+  margin-bottom: 14px;
+}
+
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+}
+
+select:focus {
+  outline: none;
+  border-color: #2d6a2d;
+}
+
+#zona-drop {
+  border: 2px dashed #a5d6a7;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #f9fbe7;
+  transition: background 0.2s;
+}
+
+#zona-drop:hover {
+  background: #f1f8e9;
+  border-color: #2d6a2d;
+}
+
+#zona-drop.arrastrando {
+  background: #c8e6c9;
+  border-color: #2d6a2d;
+}
+
+#zona-drop-texto span {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2d6a2d;
+  margin-bottom: 6px;
+}
+
+#zona-drop-texto small {
+  font-size: 12px;
+  color: #888;
+}
+
+#archivo-seleccionado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #2d6a2d;
+  font-weight: 600;
+}
+
+#btn-quitar-archivo {
+  background: none;
+  border: none;
+  color: #c62828;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: auto;
+  padding: 0 4px;
+}
+
+#zona-estado {
+  margin-bottom: 16px;
+}
+
+#mensaje-estado {
+  padding: 14px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#mensaje-estado.procesando {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+#mensaje-estado.error {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+#mensaje-estado.exito {
+  background: #e8f5e9;
+  color: #2d6a2d;
+  border: 1px solid #a5d6a7;
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-primario {
+  background: #2d6a2d;
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: #245724;
+}
+
+.btn-primario:disabled {
+  background: #a5d6a7;
+  cursor: not-allowed;
+}
+
+.btn-secundario {
+  background: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secundario:hover {
+  background: #cccccc;
+}

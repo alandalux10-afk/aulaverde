@@ -3,7 +3,6 @@ const { ipcRenderer } = require('electron')
 let proveedores = []
 let idEditando = null
 
-// Carga inicial
 document.addEventListener('DOMContentLoaded', () => {
   cargarProveedores()
 })
@@ -18,7 +17,7 @@ function renderizarTabla(lista) {
   cuerpo.innerHTML = ''
 
   if (lista.length === 0) {
-    cuerpo.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">No hay proveedores registrados</td></tr>'
+    cuerpo.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#888;">No hay proveedores registrados</td></tr>'
     return
   }
 
@@ -29,6 +28,7 @@ function renderizarTabla(lista) {
       <td>${p.nif || '—'}</td>
       <td>${p.telefono || '—'}</td>
       <td>${p.email || '—'}</td>
+      <td>${p.recargo_equivalencia ? '<span class="badge-recargo">Sí</span>' : '—'}</td>
       <td><span class="${p.activo ? 'badge-activo' : 'badge-inactivo'}">${p.activo ? 'Activo' : 'Inactivo'}</span></td>
       <td>
         <button class="btn-editar" onclick="abrirModalEditar(${p.id_proveedor})">Editar</button>
@@ -62,6 +62,7 @@ function abrirModalNuevo() {
   document.getElementById('campo-direccion').value = ''
   document.getElementById('campo-telefono').value = ''
   document.getElementById('campo-email').value = ''
+  document.getElementById('campo-recargo').checked = false
   ocultarError()
   document.getElementById('modal-proveedor').style.display = 'flex'
   document.getElementById('campo-nombre').focus()
@@ -78,6 +79,7 @@ function abrirModalEditar(idProveedor) {
   document.getElementById('campo-direccion').value = p.direccion || ''
   document.getElementById('campo-telefono').value = p.telefono || ''
   document.getElementById('campo-email').value = p.email || ''
+  document.getElementById('campo-recargo').checked = p.recargo_equivalencia === 1
   ocultarError()
   document.getElementById('modal-proveedor').style.display = 'flex'
   document.getElementById('campo-nombre').focus()
@@ -100,7 +102,8 @@ async function guardarProveedor() {
     nif: document.getElementById('campo-nif').value.trim(),
     direccion: document.getElementById('campo-direccion').value.trim(),
     telefono: document.getElementById('campo-telefono').value.trim(),
-    email: document.getElementById('campo-email').value.trim()
+    email: document.getElementById('campo-email').value.trim(),
+    recargo_equivalencia: document.getElementById('campo-recargo').checked ? 1 : 0
   }
 
   let resultado
@@ -133,4 +136,20 @@ function mostrarError(texto) {
 
 function ocultarError() {
   document.getElementById('mensaje-error').style.display = 'none'
+}
+
+function nuevaCompra() {
+  ipcRenderer.invoke('abrir-nueva-compra')
+}
+
+async function importarProveedores() {
+  const confirmar = confirm('¿Importar proveedores desde Excel?\n\nSe añadirán los proveedores nuevos. Los que ya existan no se duplicarán.')
+  if (!confirmar) return
+  const resultado = await ipcRenderer.invoke('importar-proveedores-excel')
+  if (resultado.ok) {
+    alert(`✅ Importación completada:\n${resultado.importados} proveedores importados\n${resultado.omitidos} ya existían (omitidos)`)
+    cargarProveedores()
+  } else {
+    alert('❌ Error: ' + resultado.mensaje)
+  }
 }
