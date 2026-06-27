@@ -798,7 +798,7 @@ ipcMain.handle('extraer-factura-pdf', async (event, datos) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [
           {
             role: 'user',
@@ -857,7 +857,133 @@ El JSON debe tener exactamente esta estructura:
     return { ok: false, mensaje: e.message }
   }
 })
+ipcMain.handle('abrir-revision-compra', (event, datosFactura, idProveedor, nombreProveedor, rutaPdf) => {
+  const win = new BrowserWindow({
+    width: 1300,
+height: 750,
+title: 'Revisión de compra - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/revision-compra.html')
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.send('iniciar-revision', {
+      datosFactura,
+      idProveedor,
+      nombreProveedor,
+      rutaPdf
+    })
+  })
+})
+ipcMain.handle('obtener-siguiente-codigo-producto', () => {
+  try {
+    const db = getDB()
+    const result = db.exec("SELECT MAX(CAST(codigo AS INTEGER)) FROM PRODUCTOS WHERE codigo GLOB '[0-9]*'")
+    const maximo = result.length && result[0].values[0][0] ? result[0].values[0][0] : 0
+    const siguiente = String(Number(maximo) + 1).padStart(5, '0')
+    return siguiente
+  } catch (e) {
+    return '00001'
+  }
+})
 
+ipcMain.handle('obtener-id-iva-por-porcentaje', (event, porcentaje) => {
+  const db = getDB()
+  const result = db.exec(`SELECT id_iva FROM TIPOS_IVA WHERE porcentaje = ${porcentaje} AND activo = 1 LIMIT 1`)
+  if (result.length && result[0].values.length) return result[0].values[0][0]
+  return 2 // Por defecto IVA reducido 10%
+})
+ipcMain.handle('obtener-productos-para-selector', () => {
+  const db = getDB()
+  const result = db.exec('SELECT id_producto, codigo, nombre FROM PRODUCTOS WHERE activo = 1 ORDER BY nombre ASC')
+  if (!result.length) return []
+  const cols = result[0].columns
+  return result[0].values.map(row => {
+    const obj = {}
+    cols.forEach((col, i) => obj[col] = row[i])
+    return obj
+  })
+})
+
+ipcMain.handle('obtener-correspondencias', (event, idProveedor) => {
+  const db = getDB()
+  const result = db.exec(`SELECT * FROM PRODUCTOS_PROVEEDOR WHERE id_proveedor = ${idProveedor} AND activo = 1`)
+  if (!result.length) return []
+  const cols = result[0].columns
+  return result[0].values.map(row => {
+    const obj = {}
+    cols.forEach((col, i) => obj[col] = row[i])
+    return obj
+  })
+})
+
+ipcMain.handle('guardar-compra', (event, datos) => {
+  try {
+    const db = getDB()
+    const { guardarDB } = require('./src/js/database')
+
+    // Insertar cabecera de compra
+    db.run(
+      'INSERT INTO COMPRAS (id_proveedor, numero_factura, fecha, estado, base_imponible, total_iva, total_compra, pdf_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        datos.idProveedor,
+        datos.datosFactura.numero_factura,
+        datos.datosFactura.fecha,
+        'REGISTRADA',
+        datos.datosFactura.base_imponible,
+        datos.datosFactura.total_iva,
+        datos.datosFactura.total_factura,
+        datos.rutaPdf
+      ]
+    )
+
+    // Obtener el id de la compra recién insertada
+    const idCompraResult = db.exec('SELECT last_insert_rowid()')
+    const idCompra = idCompraResult[0].values[0][0]
+
+    // Insertar líneas
+    datos.lineas.forEach((linea, index) => {
+      db.run(
+        'INSERT INTO LINEAS_COMPRA (id_compra, numero_linea, nombre_proveedor, codigo_proveedor, id_producto, cantidad, precio_unitario, porcentaje_iva, importe_iva, total_linea) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          idCompra,
+          index + 1,
+          linea.nombre_proveedor,
+          linea.codigo_proveedor || '',
+          linea.id_producto || null,
+          linea.cantidad,
+          linea.precio_unitario,
+          linea.porcentaje_iva,
+          linea.importe_iva,
+          linea.total_linea
+        ]
+      )
+    })
+
+    // Guardar correspondencias nuevas
+    let correspondenciasNuevas = 0
+    datos.lineas.forEach(linea => {
+      if (!linea.id_producto) return
+      try {
+        db.run(
+          'INSERT OR IGNORE INTO PRODUCTOS_PROVEEDOR (id_proveedor, nombre_proveedor, codigo_proveedor, id_producto, activo) VALUES (?, ?, ?, ?, 1)',
+          [datos.idProveedor, linea.nombre_proveedor, linea.codigo_proveedor || '', linea.id_producto]
+        )
+        correspondenciasNuevas++
+      } catch (e) {
+        // Ya existía la correspondencia, no pasa nada
+      }
+    })
+
+    guardarDB()
+    return { ok: true, correspondenciasNuevas }
+
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
 // ─── MÓDULO PROVEEDORES ─────────────────────────────────────────────────────
 
 ipcMain.handle('abrir-proveedores', () => {

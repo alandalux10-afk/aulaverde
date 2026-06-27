@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Revisión de compra - Aula Verde</title>
+  <link rel="stylesheet" href="../css/revision-compra.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>🔍 Revisión de factura</h1>
+  </div>
+
+  <div class="contenedor">
+
+    <!-- CABECERA DE LA FACTURA -->
+    <div class="seccion-cabecera">
+      <div class="dato-factura">
+        <label>Proveedor</label>
+        <span id="dato-proveedor">—</span>
+      </div>
+      <div class="dato-factura">
+        <label>Nº Factura</label>
+        <span id="dato-numero">—</span>
+      </div>
+      <div class="dato-factura">
+        <label>Fecha</label>
+        <span id="dato-fecha">—</span>
+      </div>
+      <div class="dato-factura">
+        <label>Base imponible</label>
+        <span id="dato-base">—</span>
+      </div>
+      <div class="dato-factura">
+        <label>Total IVA</label>
+        <span id="dato-iva">—</span>
+      </div>
+      <div class="dato-factura dato-total">
+        <label>TOTAL FACTURA</label>
+        <span id="dato-total">—</span>
+      </div>
+    </div>
+
+    <!-- LEYENDA -->
+    <div class="leyenda">
+      <span class="leyenda-item leyenda-verde">✅ Producto reconocido automáticamente</span>
+      <span class="leyenda-item leyenda-naranja">⚠️ Producto pendiente de relacionar</span>
+    </div>
+
+    <!-- TABLA DE LÍNEAS -->
+    <div class="contenedor-tabla">
+      <table id="tabla-lineas">
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Producto del proveedor</th>
+            <th>Ref. proveedor</th>
+            <th>Cantidad</th>
+            <th>Precio unit.</th>
+            <th>IVA %</th>
+            <th>Total línea</th>
+            <th>Tu producto interno</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-tabla"></tbody>
+      </table>
+    </div>
+
+    <!-- BOTONES -->
+    <div class="botones">
+      <button class="btn-secundario" id="btn-cancelar">Cancelar</button>
+      <button class="btn-primario" id="btn-confirmar">✅ Confirmar y guardar compra</button>
+    </div>
+
+  </div>
+
+  <!-- MODAL CREAR PRODUCTO RÁPIDO -->
+  <div id="modal-crear-producto" class="modal-fondo" style="display:none">
+    <div class="modal-caja">
+      <h2>➕ Crear producto nuevo</h2>
+
+      <div class="campo">
+        <label>Código <small>(generado automáticamente)</small></label>
+        <input type="text" id="np-codigo" readonly>
+      </div>
+      <div class="campo">
+        <label>Nombre *</label>
+        <input type="text" id="np-nombre">
+      </div>
+      <div class="campo">
+        <label>Familia</label>
+        <input type="text" id="np-familia" placeholder="Ej: Frutas, Verduras, Lácteos...">
+      </div>
+      <div class="campo">
+        <label>Tipo de venta</label>
+        <select id="np-tipo-venta">
+          <option value="UNIDAD">Unidad</option>
+          <option value="PESO">Peso (kg)</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Precio de coste</label>
+        <input type="number" id="np-precio-coste" step="0.01" min="0">
+      </div>
+      <div class="campo">
+        <label>Precio de venta *</label>
+        <input type="number" id="np-precio-venta" step="0.01" min="0">
+      </div>
+      <div class="campo">
+        <label>IVA</label>
+        <select id="np-iva">
+          <option value="4">4% — Superreducido</option>
+          <option value="10">10% — Reducido</option>
+          <option value="21">21% — General</option>
+          <option value="0">0% — Exento</option>
+        </select>
+      </div>
+
+      <div id="np-error" class="mensaje-error" style="display:none"></div>
+
+      <div class="modal-botones">
+        <button class="btn-secundario" id="np-cancelar">Cancelar</button>
+        <button class="btn-primario" id="np-guardar">Guardar producto</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/revision-compra.js"></script>
+</body>
+</html>
