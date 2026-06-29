@@ -1021,6 +1021,120 @@ ipcMain.handle('obtener-compras', (event, filtros) => {
     return obj
   })
 })
+ipcMain.handle('exportar-listado-ventas', async (event, filtros) => {
+  try {
+    const db = getDB()
+    const pathMod = require('path')
+    const XLSX = require('xlsx')
+
+    // Obtener todas las ventas del período
+    const ventasResult = db.exec(`
+      SELECT v.id_venta, v.numero_documento, v.fecha, v.cliente, v.total_venta
+      FROM VENTAS v
+      WHERE v.fecha >= '${filtros.desde}' AND v.fecha <= '${filtros.hasta}'
+      AND v.estado = 'COBRADO'
+      ORDER BY v.fecha ASC, v.id_venta ASC
+    `)
+
+    if (!ventasResult.length || !ventasResult[0].values.length) {
+      return { ok: false, mensaje: 'No hay ventas en el período seleccionado.' }
+    }
+
+    const colsVenta = ventasResult[0].columns
+    const ventas = ventasResult[0].values.map(row => {
+      const obj = {}
+      colsVenta.forEach((col, i) => obj[col] = row[i])
+      return obj
+    })
+
+    const filas = []
+
+    ventas.forEach(venta => {
+      // Obtener líneas agrupadas por tipo de IVA
+      const lineasResult = db.exec(`
+        SELECT porcentaje_iva,
+               SUM(total_linea / (1 + porcentaje_iva / 100.0)) as base,
+               SUM(importe_iva) as iva
+        FROM LINEAS_VENTA
+        WHERE id_venta = ${venta.id_venta}
+        GROUP BY porcentaje_iva
+      `)
+
+      let base4 = 0, iva4 = 0
+      let base10 = 0, iva10 = 0
+      let base21 = 0, iva21 = 0
+      let base0 = 0, iva0 = 0
+      let baseTotal = 0
+
+      if (lineasResult.length && lineasResult[0].values.length) {
+        lineasResult[0].values.forEach(row => {
+          const pct = Number(row[0])
+          const base = Number(Number(row[1]).toFixed(2))
+          const iva = Number(Number(row[2]).toFixed(2))
+          baseTotal += base
+
+          if (pct === 4) { base4 = base; iva4 = iva }
+          else if (pct === 10) { base10 = base; iva10 = iva }
+          else if (pct === 21) { base21 = base; iva21 = iva }
+          else if (pct === 0) { base0 = base; iva0 = iva }
+        })
+      }
+
+      filas.push({
+        'Nº Factura': venta.numero_documento,
+        'Fecha': venta.fecha,
+        'Cliente': venta.cliente || 'Cliente contado',
+        'Base': Number(baseTotal.toFixed(2)),
+        'Base IVA 4%': base4 || '',
+        'IVA 4% Superreducido': iva4 || '',
+        'Rec. Equiv. 4%': base4 ? Number((base4 * 0.005).toFixed(2)) : '',
+        'Base IVA 10%': base10 || '',
+        'IVA 10% Reducido': iva10 || '',
+        'Rec. Equiv. 10%': base10 ? Number((base10 * 0.014).toFixed(2)) : '',
+        'Base IVA 21%': base21 || '',
+        'IVA 21% General': iva21 || '',
+        'Rec. Equiv. 21%': base21 ? Number((base21 * 0.052).toFixed(2)) : '',
+        'Base IVA 0%': base0 || '',
+        'IVA 0% Exento': iva0 || '',
+        'Rec. Equiv. 0%': '',
+        'Total': Number(venta.total_venta.toFixed(2))
+      })
+    })
+
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(filas)
+
+    ws['!cols'] = [
+      { wch: 15 }, // Nº Factura
+      { wch: 12 }, // Fecha
+      { wch: 25 }, // Cliente
+      { wch: 10 }, // Base
+      { wch: 12 }, // Base IVA 4%
+      { wch: 18 }, // IVA 4%
+      { wch: 15 }, // Rec 4%
+      { wch: 12 }, // Base IVA 10%
+      { wch: 18 }, // IVA 10%
+      { wch: 15 }, // Rec 10%
+      { wch: 12 }, // Base IVA 21%
+      { wch: 18 }, // IVA 21%
+      { wch: 15 }, // Rec 21%
+      { wch: 12 }, // Base IVA 0%
+      { wch: 18 }, // IVA 0%
+      { wch: 15 }, // Rec 0%
+      { wch: 10 }  // Total
+    ]
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Listado de ventas')
+
+    const nombreArchivo = `listado_ventas_${filtros.desde}_${filtros.hasta}.xlsx`
+    const ruta = pathMod.join(__dirname, 'data', nombreArchivo)
+    XLSX.writeFile(wb, ruta)
+    return { ok: true, ruta }
+
+  } catch (e) {
+    return { ok: false, mensaje: e.message }
+  }
+})
 ipcMain.handle('exportar-listado-facturas', async (event, filtros) => {
   try {
     const db = getDB()
