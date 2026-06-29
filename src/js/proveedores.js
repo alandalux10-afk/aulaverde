@@ -153,3 +153,6 @@ async function importarProveedores() {
     alert('❌ Error: ' + resultado.mensaje)
   }
 }
+function abrirHistorico() {
+  ipcRenderer.invoke('abrir-historico-compras')
+}

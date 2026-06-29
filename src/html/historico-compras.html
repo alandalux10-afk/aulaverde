@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Histórico de compras - Aula Verde</title>
+  <link rel="stylesheet" href="../css/historico-compras.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>📦 Histórico de compras</h1>
+  </div>
+
+  <div class="contenedor">
+
+    <div class="barra-filtros">
+      <select id="filtro-proveedor">
+        <option value="">Todos los proveedores</option>
+      </select>
+      <input type="date" id="filtro-desde">
+      <span>hasta</span>
+      <input type="date" id="filtro-hasta">
+      <button class="btn-primario" id="btn-filtrar">Filtrar</button>
+      <button class="btn-secundario" id="btn-hoy">Hoy</button>
+      <button class="btn-secundario" id="btn-mes">Este mes</button>
+    </div>
+
+    <div class="resumen-totales">
+      <div class="resumen-dato">
+        <label>Facturas</label>
+        <span id="resumen-num">0</span>
+      </div>
+      <div class="resumen-dato">
+        <label>Base imponible</label>
+        <span id="resumen-base">0,00 €</span>
+      </div>
+      <div class="resumen-dato">
+        <label>Total IVA</label>
+        <span id="resumen-iva">0,00 €</span>
+      </div>
+      <div class="resumen-dato resumen-total">
+        <label>TOTAL COMPRAS</label>
+        <span id="resumen-total">0,00 €</span>
+      </div>
+    </div>
+
+    <table id="tabla-compras">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Proveedor</th>
+          <th>Nº Factura</th>
+          <th>Base imponible</th>
+          <th>Total IVA</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla"></tbody>
+    </table>
+
+  </div>
+
+  <!-- MODAL DETALLE COMPRA -->
+  <div id="modal-detalle" class="modal-fondo" style="display:none">
+    <div class="modal-caja-grande">
+      <div class="modal-cabecera">
+        <h2 id="detalle-titulo">Detalle de compra</h2>
+        <button class="btn-cerrar-modal" id="btn-cerrar-detalle">✖</button>
+      </div>
+
+      <div class="detalle-info">
+        <div class="detalle-dato">
+          <label>Proveedor</label>
+          <span id="detalle-proveedor">—</span>
+        </div>
+        <div class="detalle-dato">
+          <label>Nº Factura</label>
+          <span id="detalle-numero">—</span>
+        </div>
+        <div class="detalle-dato">
+          <label>Fecha</label>
+          <span id="detalle-fecha">—</span>
+        </div>
+        <div class="detalle-dato">
+          <label>Total</label>
+          <span id="detalle-total" class="detalle-total-importe">—</span>
+        </div>
+      </div>
+
+      <table id="tabla-detalle-lineas">
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Producto proveedor</th>
+            <th>Ref.</th>
+            <th>Producto interno</th>
+            <th>Cantidad</th>
+            <th>Precio unit.</th>
+            <th>IVA %</th>
+            <th>Total línea</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-detalle"></tbody>
+      </table>
+
+      <div class="modal-botones">
+        <button class="btn-secundario" id="btn-cerrar-detalle2">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/historico-compras.js"></script>
+</body>
+</html>
