@@ -22,7 +22,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('filtro-hasta').value = ultimo
     cargarCompras()
   })
-
+  document.getElementById('btn-listado-facturas').addEventListener('click', async () => {
+    const desde = document.getElementById('filtro-desde').value
+    const hasta = document.getElementById('filtro-hasta').value
+    if (!desde || !hasta) {
+      alert('Selecciona un rango de fechas antes de generar el listado.')
+      return
+    }
+    const resultado = await ipcRenderer.invoke('exportar-listado-facturas', { desde, hasta })
+    if (resultado.ok) {
+      alert('✅ Excel generado correctamente en:\n' + resultado.ruta)
+    } else {
+      alert('❌ Error al generar el Excel: ' + resultado.mensaje)
+    }
+  })
   document.getElementById('btn-cerrar-detalle').addEventListener('click', cerrarDetalle)
   document.getElementById('btn-cerrar-detalle2').addEventListener('click', cerrarDetalle)
 })

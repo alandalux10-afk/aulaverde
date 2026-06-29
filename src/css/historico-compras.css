@@ -189,7 +189,20 @@ tbody td {
 .btn-secundario:hover {
   background: #cccccc;
 }
+.btn-excel {
+  background: #1b5e20;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
+.btn-excel:hover {
+  background: #144d18;
+}
 /* MODAL DETALLE */
 .modal-fondo {
   position: fixed;
