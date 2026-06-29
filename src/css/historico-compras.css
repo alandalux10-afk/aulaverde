@@ -1,0 +1,274 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.header {
+  background: #2d6a2d;
+  color: white;
+  padding: 14px 24px;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.contenedor {
+  padding: 20px 24px;
+}
+
+/* FILTROS */
+.barra-filtros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.barra-filtros select,
+.barra-filtros input[type="date"] {
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+}
+
+.barra-filtros select {
+  min-width: 200px;
+}
+
+.barra-filtros span {
+  font-size: 13px;
+  color: #666;
+}
+
+/* RESUMEN */
+.resumen-totales {
+  display: flex;
+  gap: 16px;
+  background: white;
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  flex-wrap: wrap;
+}
+
+.resumen-dato {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+}
+
+.resumen-dato label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.resumen-dato span {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.resumen-total span {
+  font-size: 18px;
+  color: #2d6a2d;
+  font-weight: 700;
+}
+
+/* TABLA */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+thead tr {
+  background: #2d6a2d;
+  color: white;
+}
+
+thead th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+tbody tr {
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: #f1f8e9;
+}
+
+tbody td {
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.badge-registrada {
+  background: #c8e6c9;
+  color: #2d6a2d;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-pendiente {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.btn-ver {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-ver:hover {
+  background: #90caf9;
+}
+
+/* BOTONES */
+.btn-primario {
+  background: #2d6a2d;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primario:hover {
+  background: #245724;
+}
+
+.btn-secundario {
+  background: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secundario:hover {
+  background: #cccccc;
+}
+
+/* MODAL DETALLE */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-caja-grande {
+  background: white;
+  border-radius: 8px;
+  padding: 24px 28px;
+  width: 900px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.modal-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-cabecera h2 {
+  font-size: 17px;
+  color: #2d6a2d;
+}
+
+.btn-cerrar-modal {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #888;
+  padding: 4px 8px;
+}
+
+.btn-cerrar-modal:hover {
+  color: #333;
+}
+
+.detalle-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.detalle-dato {
+  display: flex;
+  flex-direction: column;
+}
+
+.detalle-dato label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.detalle-dato span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.detalle-total-importe {
+  font-size: 16px !important;
+  color: #2d6a2d;
+  font-weight: 700 !important;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}

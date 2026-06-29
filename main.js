@@ -984,6 +984,61 @@ ipcMain.handle('guardar-compra', (event, datos) => {
     return { ok: false, mensaje: e.message }
   }
 })
+ipcMain.handle('abrir-historico-compras', () => {
+  const win = new BrowserWindow({
+    width: 1100,
+    height: 700,
+    title: 'Histórico de compras - Aula Verde',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  win.loadFile('src/html/historico-compras.html')
+})
+
+ipcMain.handle('obtener-compras', (event, filtros) => {
+  const db = getDB()
+  let sql = `
+    SELECT c.id_compra, c.numero_factura, c.fecha, c.estado,
+    c.base_imponible, c.total_iva, c.total_compra, c.pdf_path,
+    p.nombre as nombre_proveedor
+    FROM COMPRAS c
+    JOIN PROVEEDORES p ON c.id_proveedor = p.id_proveedor
+    WHERE 1=1
+  `
+  if (filtros.idProveedor) sql += ` AND c.id_proveedor = ${filtros.idProveedor}`
+  if (filtros.desde) sql += ` AND c.fecha >= '${filtros.desde}'`
+  if (filtros.hasta) sql += ` AND c.fecha <= '${filtros.hasta}'`
+  sql += ' ORDER BY c.fecha DESC, c.id_compra DESC'
+
+  const result = db.exec(sql)
+  if (!result.length) return []
+  const cols = result[0].columns
+  return result[0].values.map(row => {
+    const obj = {}
+    cols.forEach((col, i) => obj[col] = row[i])
+    return obj
+  })
+})
+
+ipcMain.handle('obtener-detalle-compra', (event, idCompra) => {
+  const db = getDB()
+  const result = db.exec(`
+    SELECT lc.*, p.nombre as nombre_producto
+    FROM LINEAS_COMPRA lc
+    LEFT JOIN PRODUCTOS p ON lc.id_producto = p.id_producto
+    WHERE lc.id_compra = ${idCompra}
+    ORDER BY lc.numero_linea ASC
+  `)
+  if (!result.length) return []
+  const cols = result[0].columns
+  return result[0].values.map(row => {
+    const obj = {}
+    cols.forEach((col, i) => obj[col] = row[i])
+    return obj
+  })
+})
 // ─── MÓDULO PROVEEDORES ─────────────────────────────────────────────────────
 
 ipcMain.handle('abrir-proveedores', () => {
