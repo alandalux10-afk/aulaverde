@@ -180,7 +180,38 @@ function migrarTablas() {
       FOREIGN KEY (id_producto) REFERENCES PRODUCTOS(id_producto)
     )
   `)
-// Añadir columna recargo_equivalencia a PROVEEDORES si no existe
+
+  // ===== MVP v2.0 — Fase 1: Módulo CLIENTES =====
+  db.run(`
+    CREATE TABLE IF NOT EXISTS CLIENTES (
+      id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre VARCHAR(255) NOT NULL,
+      telefono VARCHAR(50),
+      email VARCHAR(255),
+      fecha_nacimiento DATE,
+      direccion VARCHAR(255),
+      nif VARCHAR(20),
+      notas TEXT,
+      fecha_alta DATE NOT NULL DEFAULT (date('now')),
+      activo BOOLEAN NOT NULL DEFAULT 1,
+      descuento DECIMAL(5,2) NOT NULL DEFAULT 0
+    )
+  `)
+// ===== MVP v2.0 — Fase 2: Módulo FIDELIZACIÓN =====
+  db.run(`
+    CREATE TABLE IF NOT EXISTS MOVIMIENTOS_PUNTOS (
+      id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_cliente INTEGER NOT NULL,
+      id_venta INTEGER,
+      tipo TEXT NOT NULL,
+      puntos INTEGER NOT NULL,
+      fecha DATE NOT NULL DEFAULT (date('now')),
+      descripcion VARCHAR(255),
+      FOREIGN KEY (id_cliente) REFERENCES CLIENTES(id_cliente),
+      FOREIGN KEY (id_venta) REFERENCES VENTAS(id_venta)
+    )
+  `)
+  // Añadir columna recargo_equivalencia a PROVEEDORES si no existe
   try {
     db.run(`ALTER TABLE PROVEEDORES ADD COLUMN recargo_equivalencia BOOLEAN NOT NULL DEFAULT 0`)
   } catch (e) {
@@ -189,6 +220,23 @@ function migrarTablas() {
   // Añadir columna api_key_anthropic si no existe todavía
   try {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN api_key_anthropic VARCHAR(255)`)
+  } catch (e) {
+    // La columna ya existe, no hay que hacer nada
+  }
+  // Añadir columnas de fidelización a CONFIGURACION si no existen todavía (MVP v2.0 - Fase 2)
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN puntos_euros_por_punto DECIMAL(10,2) NOT NULL DEFAULT 10`)
+  } catch (e) {
+    // La columna ya existe, no hay que hacer nada
+  }
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN puntos_valor_canje DECIMAL(10,2) NOT NULL DEFAULT 5`)
+  } catch (e) {
+    // La columna ya existe, no hay que hacer nada
+  }
+  // Añadir columna id_cliente a VENTAS si no existe todavía (MVP v2.0 - Fase 1)
+  try {
+    db.run(`ALTER TABLE VENTAS ADD COLUMN id_cliente INTEGER REFERENCES CLIENTES(id_cliente)`)
   } catch (e) {
     // La columna ya existe, no hay que hacer nada
   }
@@ -224,4 +272,4 @@ function getDB() {
   return db
 }
 
-module.exports = { inicializarDB, guardarDB, getDB }
+module.exports = { inicializarDB, guardarDB, getDB }    

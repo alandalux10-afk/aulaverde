@@ -12,6 +12,8 @@ async function cargarConfiguracion() {
     document.getElementById('impresora_ticket').value = cfg.impresora_ticket || ''
     document.getElementById('impresora_factura').value = cfg.impresora_factura || ''
     document.getElementById('api_key_anthropic').value = cfg.api_key_anthropic || ''
+    document.getElementById('puntos_euros_por_punto').value = cfg.puntos_euros_por_punto || 10
+    document.getElementById('puntos_valor_canje').value = cfg.puntos_valor_canje || 5
   }
 }
 
@@ -25,7 +27,9 @@ document.getElementById('btn-guardar').addEventListener('click', async () => {
     email: document.getElementById('email').value,
     impresora_ticket: document.getElementById('impresora_ticket').value,
     impresora_factura: document.getElementById('impresora_factura').value,
-    api_key_anthropic: document.getElementById('api_key_anthropic').value
+    api_key_anthropic: document.getElementById('api_key_anthropic').value,
+    puntos_euros_por_punto: parseFloat(document.getElementById('puntos_euros_por_punto').value) || 10,
+    puntos_valor_canje: parseFloat(document.getElementById('puntos_valor_canje').value) || 5
   }
 
   const resultado = await ipcRenderer.invoke('guardar-configuracion', datos)
