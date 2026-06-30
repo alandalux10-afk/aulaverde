@@ -12,8 +12,13 @@
     <div id="info-tienda">
       <span id="nombre-tienda">Aula Verde</span>
     </div>
-    <div id="info-venta">
+   <div id="info-venta">
       <span id="numero-documento">TICKET-0001</span>
+      <div id="contenedor-cliente">
+        <input type="text" id="input-cliente" placeholder="Cliente contado" autocomplete="off">
+        <button id="btn-quitar-cliente" title="Quitar cliente" style="display:none;">✕</button>
+        <div id="resultados-cliente"></div>
+      </div>
       <span id="fecha-hora"></span>
     </div>
   </header>
@@ -26,10 +31,8 @@
       <button class="btn-menu" id="btn-consultas">📋 Consultas</button>
       <button class="btn-menu" id="btn-resumen">📊 Resumen</button>
       <button class="btn-menu" id="btn-configuracion">⚙️ Configuración</button>    <button class="btn-menu" id="btn-catalogo">📦 Catálogo</button>
-      <button class="btn-menu" id="btn-impresora">🖨️ Impresora</button>
-      <button class="btn-menu" id="btn-visor">🖥️ Visor</button>
-      <button class="btn-menu" id="btn-balanza">⚖️ Balanza</button>
       <button class="btn-menu" id="btn-proveedores">🏭 Proveedores</button>
+      <button class="btn-menu" id="btn-clientes">👥 Clientes</button>
     </aside>
 
     <!-- PANEL CENTRAL -->
@@ -153,13 +156,21 @@
       <span>Cambio:</span>
       <span id="cobro-cambio" class="cobro-importe">0,00 €</span>
     </div>
- <div class="cobro-fila">
-  <span>Tipo de documento:</span>
-  <div id="cobro-tipos-documento">
-    <button class="btn-tipo-doc activo" data-tipo="TICKET">🧾 Ticket</button>
-    <button class="btn-tipo-doc" data-tipo="FACTURA_SIMPLIFICADA">📄 Factura</button>
-  </div>
-</div>
+    <div class="cobro-fila" id="cobro-fila-puntos" style="display:none;">
+      <span id="cobro-puntos-disponibles">Puntos disponibles: 0</span>
+      <input type="number" id="cobro-puntos-canjear" min="0" step="1" placeholder="0" style="width:80px;">
+    </div>
+    <div class="cobro-fila" id="cobro-fila-descuento-puntos" style="display:none;">
+      <span>Descuento por puntos:</span>
+      <span id="cobro-descuento-puntos" class="cobro-importe">0,00 €</span>
+    </div>
+    <div class="cobro-fila">
+      <span>Tipo de documento:</span>
+      <div id="cobro-tipos-documento">
+        <button class="btn-tipo-doc activo" data-tipo="TICKET">🧾 Ticket</button>
+        <button class="btn-tipo-doc" data-tipo="FACTURA_SIMPLIFICADA">📄 Factura</button>
+      </div>
+    </div>
     <div id="cobro-botones">
       <button id="btn-cobro-cancelar">Cancelar</button>
       <button id="btn-cobro-aceptar">Aceptar</button>

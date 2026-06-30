@@ -8,6 +8,31 @@ function generarHtmlTicket(venta, lineas, configuracion) {
   lineas.forEach(l => {
     lineasHtml += '<tr><td style="width:60%">' + (l.nombre_producto || '').substring(0, 22) + '</td><td style="text-align:center;width:15%">' + l.cantidad + '</td><td style="text-align:right;width:25%">' + Number(l.total_linea).toFixed(2) + '</td></tr>'
   })
+
+  // Bloque de descuentos (MVP v2.0 - Fase 1 y 2): descuento por % de cliente y/o canje de puntos
+  let descuentosHtml = ''
+  if (venta.descuento_cliente_porcentaje && venta.descuento_cliente_euros) {
+    descuentosHtml += '<div class="sub">Descuento cliente (' + venta.descuento_cliente_porcentaje + '%): -' + Number(venta.descuento_cliente_euros).toFixed(2) + '</div>'
+  }
+  if (venta.puntos_canjeados && venta.descuento_puntos_euros) {
+    descuentosHtml += '<div class="sub">Descuento puntos (' + venta.puntos_canjeados + ' pts): -' + Number(venta.descuento_puntos_euros).toFixed(2) + '</div>'
+  }
+
+  // Bloque de información de puntos al final del ticket
+  let puntosHtml = ''
+  if (venta.puntos_canjeados || venta.puntos_ganados) {
+    puntosHtml += '<hr>'
+    if (venta.puntos_canjeados) {
+      puntosHtml += '<div class="sub">Puntos canjeados: ' + venta.puntos_canjeados + '</div>'
+    }
+    if (venta.puntos_ganados) {
+      puntosHtml += '<div class="sub">Puntos ganados: ' + venta.puntos_ganados + '</div>'
+    }
+    if (venta.puntos_saldo !== undefined && venta.puntos_saldo !== null) {
+      puntosHtml += '<div class="sub">Puntos saldo actual: ' + venta.puntos_saldo + '</div>'
+    }
+  }
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -43,10 +68,12 @@ td { padding: 1px 0; vertical-align: top; }
   ${lineasHtml}
 </table>
 <hr>
+${descuentosHtml}
 <div class="tot">TOTAL: ${Number(venta.total_venta).toFixed(2)} EUR</div>
 <div class="sub">Base: ${Number(venta.base_imponible).toFixed(2)} &nbsp; IVA: ${Number(venta.total_iva).toFixed(2)}</div>
 <hr>
 <div>Pago: ${venta.forma_pago}</div>
+${puntosHtml}
 <hr>
 <div class="pie">Gracias por su compra</div>
 <div class="pie">www.aulaverde.es</div>

@@ -2,8 +2,14 @@ const { ipcRenderer } = require('electron')
 
 let lineas = []
 let lineaSeleccionada = null
+let clienteSeleccionado = null
 let displayCalc = ''
 let modoCalc = 'cantidad'
+let configuracionPuntos = { puntos_valor_canje: 5 }
+
+ipcRenderer.invoke('obtener-configuracion').then(cfg => {
+  if (cfg) configuracionPuntos = cfg
+})
 
 function actualizarFechaHora() {
   const ahora = new Date()
@@ -76,7 +82,7 @@ function crearLinea() {
     nombre: 'Línea manual',
     cantidad: 1,
     precio: 0,
-    descuento: 0,
+    descuento: clienteSeleccionado ? clienteSeleccionado.descuento : 0,
     iva: 10,
     total: 0
   }
@@ -159,7 +165,89 @@ document.getElementById('input-busqueda').addEventListener('input', async functi
   })
   contenedor.style.display = 'block'
 })
+document.getElementById('input-cliente').addEventListener('input', async function() {
+  const texto = this.value.trim().toLowerCase()
+  const contenedor = document.getElementById('resultados-cliente')
+  if (texto.length < 1) {
+    contenedor.style.display = 'none'
+    contenedor.innerHTML = ''
+    return
+  }
+  const clientes = await ipcRenderer.invoke('obtener-clientes-para-selector')
+  const filtrados = clientes.filter(c =>
+    c.nombre.toLowerCase().includes(texto) ||
+    (c.telefono || '').toLowerCase().includes(texto)
+  ).slice(0, 8)
 
+  if (filtrados.length === 0) {
+    contenedor.style.display = 'none'
+    return
+  }
+
+  contenedor.innerHTML = ''
+  filtrados.forEach(c => {
+    const div = document.createElement('div')
+    div.className = 'resultado-cliente-item'
+    div.innerHTML = `${c.nombre}${c.telefono ? ' · ' + c.telefono : ''}
+      ${c.descuento > 0 ? `<br><span class="resultado-cliente-descuento">Descuento automático: ${c.descuento}%</span>` : ''}`
+    div.addEventListener('click', () => {
+      seleccionarCliente(c)
+      contenedor.style.display = 'none'
+      contenedor.innerHTML = ''
+    })
+    contenedor.appendChild(div)
+  })
+  contenedor.style.display = 'block'
+})
+
+document.getElementById('input-cliente').addEventListener('keydown', function(e) {
+  const contenedor = document.getElementById('resultados-cliente')
+  const items = contenedor.querySelectorAll('.resultado-cliente-item')
+  if (!items.length) return
+  const activo = contenedor.querySelector('.resultado-cliente-item.activo')
+  let index = Array.from(items).indexOf(activo)
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    if (activo) activo.classList.remove('activo')
+    index = (index + 1) % items.length
+    items[index].classList.add('activo')
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    if (activo) activo.classList.remove('activo')
+    index = (index - 1 + items.length) % items.length
+    items[index].classList.add('activo')
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    if (activo) activo.click()
+  } else if (e.key === 'Escape') {
+    contenedor.style.display = 'none'
+    contenedor.innerHTML = ''
+  }
+})
+
+async function seleccionarCliente(c) {
+  clienteSeleccionado = c
+  const input = document.getElementById('input-cliente')
+  input.value = c.nombre
+  document.getElementById('btn-quitar-cliente').style.display = 'inline-block'
+
+  if (c.descuento > 0 && lineas.length > 0) {
+    lineas.forEach(l => {
+      l.descuento = c.descuento
+      l.total = calcularTotalLinea(l)
+    })
+    renderizarLineas()
+  }
+
+  const datosPuntos = await ipcRenderer.invoke('obtener-puntos-cliente', c.id_cliente)
+  clienteSeleccionado.puntosDisponibles = datosPuntos.saldo
+}
+
+document.getElementById('btn-quitar-cliente').addEventListener('click', () => {
+  clienteSeleccionado = null
+  document.getElementById('input-cliente').value = ''
+  document.getElementById('btn-quitar-cliente').style.display = 'none'
+})
 function agregarProductoALinea(p) {
   const nuevaLinea = {
     numero: lineas.length + 1,
@@ -167,7 +255,7 @@ function agregarProductoALinea(p) {
     nombre: p.nombre,
     cantidad: 1,
     precio: Number((p.precio_venta * (1 + (p.porcentaje_iva || 10) / 100)).toFixed(2)),
-    descuento: 0,
+    descuento: clienteSeleccionado ? clienteSeleccionado.descuento : 0,
     iva: p.porcentaje_iva || 10,
     total: 0
   }
@@ -252,6 +340,17 @@ function abrirCobro() {
   tipoDocumentoSeleccionado = 'TICKET'
   document.querySelectorAll('.btn-tipo-doc').forEach(b => b.classList.remove('activo'))
   document.querySelector('.btn-tipo-doc[data-tipo="TICKET"]').classList.add('activo')
+
+  document.getElementById('cobro-puntos-canjear').value = ''
+  document.getElementById('cobro-descuento-puntos').textContent = '0,00 €'
+  document.getElementById('cobro-fila-descuento-puntos').style.display = 'none'
+  if (clienteSeleccionado && clienteSeleccionado.puntosDisponibles > 0) {
+    document.getElementById('cobro-puntos-disponibles').textContent = 'Puntos disponibles: ' + clienteSeleccionado.puntosDisponibles
+    document.getElementById('cobro-fila-puntos').style.display = 'flex'
+  } else {
+    document.getElementById('cobro-fila-puntos').style.display = 'none'
+  }
+
   document.getElementById('modal-cobro').style.display = 'block'
   setTimeout(() => document.getElementById('cobro-efectivo').focus(), 100)
 }
@@ -293,29 +392,71 @@ document.getElementById('cobro-efectivo').addEventListener('keydown', function(e
   }
 })
 
-document.getElementById('cobro-efectivo').addEventListener('input', function() {
+function totalConDescuentoPuntos() {
   const total = lineas.reduce((acc, l) => acc + l.total, 0)
+  const puntos = parseInt(document.getElementById('cobro-puntos-canjear').value) || 0
+  const descuentoPuntos = (puntos / 100) * (configuracionPuntos.puntos_valor_canje || 0)
+  return Math.max(0, total - descuentoPuntos)
+}
+
+document.getElementById('cobro-efectivo').addEventListener('input', function() {
+  const totalFinal = totalConDescuentoPuntos()
   const efectivo = parseFloat(this.value) || 0
-  const cambio = efectivo - total
+  const cambio = efectivo - totalFinal
+  document.getElementById('cobro-cambio').textContent = cambio >= 0
+    ? formatearEuros(cambio)
+    : '0,00 €'
+})
+
+document.getElementById('cobro-puntos-canjear').addEventListener('input', function() {
+  const disponibles = clienteSeleccionado ? (clienteSeleccionado.puntosDisponibles || 0) : 0
+  let puntos = parseInt(this.value) || 0
+
+  if (puntos < 0) puntos = 0
+  if (puntos > disponibles) {
+    puntos = disponibles
+    this.value = puntos
+  }
+
+  const descuentoPuntos = (puntos / 100) * (configuracionPuntos.puntos_valor_canje || 0)
+
+  if (puntos > 0) {
+    document.getElementById('cobro-descuento-puntos').textContent = formatearEuros(descuentoPuntos)
+    document.getElementById('cobro-fila-descuento-puntos').style.display = 'flex'
+  } else {
+    document.getElementById('cobro-fila-descuento-puntos').style.display = 'none'
+  }
+
+  const totalFinal = totalConDescuentoPuntos()
+  document.getElementById('cobro-total').textContent = formatearEuros(totalFinal)
+
+  const efectivo = parseFloat(document.getElementById('cobro-efectivo').value) || 0
+  const cambio = efectivo - totalFinal
   document.getElementById('cobro-cambio').textContent = cambio >= 0
     ? formatearEuros(cambio)
     : '0,00 €'
 })
 
 document.getElementById('btn-cobro-aceptar').addEventListener('click', async () => {
-  const total = lineas.reduce((acc, l) => acc + l.total, 0)
+  const puntosCanjear = parseInt(document.getElementById('cobro-puntos-canjear').value) || 0
+  const totalFinal = totalConDescuentoPuntos()
+
   if (formaPagoSeleccionada === 1) {
     const efectivo = parseFloat(document.getElementById('cobro-efectivo').value) || 0
-    if (efectivo < total) {
+    if (efectivo < totalFinal) {
       alert('El efectivo entregado es menor que el total')
       return
     }
   }
-  const resultado = await ipcRenderer.invoke('guardar-venta', lineas, formaPagoSeleccionada, tipoDocumentoSeleccionado)
+
+  const resultado = await ipcRenderer.invoke('guardar-venta', lineas, formaPagoSeleccionada, tipoDocumentoSeleccionado, clienteSeleccionado, puntosCanjear)
   cerrarCobro()
   if (resultado.ok) {
     lineas = []
     lineaSeleccionada = null
+    clienteSeleccionado = null
+    document.getElementById('input-cliente').value = ''
+    document.getElementById('btn-quitar-cliente').style.display = 'none'
     renderizarLineas()
     const imprimir = await ipcRenderer.invoke('dialogo-imprimir', resultado.numeroDocumento)
     if (imprimir) {
@@ -327,7 +468,7 @@ document.getElementById('btn-cobro-aceptar').addEventListener('click', async () 
       }
       if (!resImp.ok) await ipcRenderer.invoke('dialogo-error', resImp.mensaje)
     }
-   setTimeout(() => {
+    setTimeout(() => {
       window.focus()
       document.getElementById('input-busqueda').focus()
       document.getElementById('input-busqueda').click()
@@ -379,6 +520,10 @@ document.getElementById('btn-catalogo').addEventListener('click', () => {
 document.getElementById('btn-proveedores').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-proveedores')
 })
+document.getElementById('btn-clientes').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-clientes')
+})
+
 function abrirOpciones() {
   if (lineaSeleccionada === null) {
     alert('Selecciona una línea para editar')
@@ -417,6 +562,7 @@ document.getElementById('btn-opciones-aceptar').addEventListener('click', () => 
 document.addEventListener('keydown', (e) => {
   const foco = document.activeElement
   if (foco && foco.id === 'cobro-efectivo') return
+  if (foco && foco.id === 'cobro-puntos-canjear') return
   if (document.getElementById('modal-opciones').style.display === 'block') return
   if (document.getElementById('modal-cobro').style.display === 'block') return
   if (lineaSeleccionada !== null) {

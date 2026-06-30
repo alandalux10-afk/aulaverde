@@ -1,0 +1,249 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background-color: #f5f5f5;
+  color: #222;
+}
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cabecera h1 {
+  margin: 0;
+  color: #2d6a2d;
+  font-size: 22px;
+}
+
+.acciones-cabecera {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primario {
+  background-color: #2d6a2d;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-primario:hover {
+  background-color: #245524;
+}
+
+.btn-secundario {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-secundario:hover {
+  background-color: #cfcfcf;
+}
+
+.panel-alertas {
+  background-color: #fff8e1;
+  border: 1px solid #ffd54f;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.alertas-titulo {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #8a6d00;
+}
+
+.linea-alerta {
+  font-size: 14px;
+  padding: 3px 0;
+  color: #5c4a00;
+}
+
+.filtros {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.filtros input[type="text"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.filtros select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.tabla-clientes, .tabla-historial {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tabla-clientes th, .tabla-historial th {
+  background-color: #2d6a2d;
+  color: white;
+  text-align: left;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.tabla-clientes td, .tabla-historial td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.tabla-clientes tr:hover {
+  background-color: #f1f8e9;
+}
+
+.badge-activo {
+  background-color: #c8e6c9;
+  color: #2d6a2d;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.badge-inactivo {
+  background-color: #ffcdd2;
+  color: #b71c1c;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.badge-descuento {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.btn-editar, .btn-historial {
+  background-color: #2d6a2d;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.btn-toggle-activo {
+  background-color: #b71c1c;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-toggle-inactivo {
+  background-color: #2d6a2d;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-caja {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-grande {
+  width: 600px;
+}
+
+.modal-caja h2 {
+  margin-top: 0;
+  color: #2d6a2d;
+}
+
+.modal-caja label {
+  display: block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #555;
+}
+
+.modal-caja input, .modal-caja textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.mensaje-error {
+  background-color: #ffebee;
+  color: #b71c1c;
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.pie {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+.badge-puntos {
+  background-color: #fff3cd;
+  color: #8a6d00;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}

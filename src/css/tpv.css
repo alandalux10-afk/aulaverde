@@ -525,3 +525,72 @@ body {
   background: #2d6a2d;
   color: white;
 }
+/* ===== Buscador de cliente en cabecera (MVP v2.0 - Fase 1) ===== */
+
+#contenedor-cliente {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#input-cliente {
+  width: 220px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+#btn-quitar-cliente {
+  background-color: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#btn-quitar-cliente:hover {
+  background-color: rgba(255,255,255,0.35);
+}
+
+#resultados-cliente {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 280px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-top: 4px;
+}
+
+.resultado-cliente-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #222;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+}
+
+.resultado-cliente-item:last-child {
+  border-bottom: none;
+}
+
+.resultado-cliente-item:hover,
+.resultado-cliente-item.activo {
+  background-color: #f1f8e9;
+}
+
+.resultado-cliente-descuento {
+  color: #2d6a2d;
+  font-weight: bold;
+  font-size: 12px;
+}
