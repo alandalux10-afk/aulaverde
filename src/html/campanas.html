@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Campañas - Aula Verde</title>
+  <link rel="stylesheet" href="../css/campanas.css">
+</head>
+<body>
+
+  <div class="cabecera">
+    <h1>📢 Campañas de marketing</h1>
+  </div>
+
+  <div class="contenido">
+
+    <!-- PASO 1: Canal -->
+    <div class="paso">
+      <div class="paso-titulo">1. Canal de envío</div>
+      <div class="opciones-canal">
+        <button class="btn-canal activo" data-canal="email">📧 Email</button>
+        <button class="btn-canal" data-canal="whatsapp">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <!-- PASO 2: Segmentación -->
+    <div class="paso">
+      <div class="paso-titulo">2. Destinatarios</div>
+      <div class="opciones-segmento">
+        <button class="btn-segmento activo" data-segmento="todos">👥 Todos los clientes activos</button>
+        <button class="btn-segmento" data-segmento="cumpleanos">🎂 Cumpleaños en un mes</button>
+        <button class="btn-segmento" data-segmento="inactivos">⏳ Clientes inactivos</button>
+      </div>
+      <div id="filtro-cumpleanos" class="filtro-extra" style="display:none;">
+        <label>Mes de cumpleaños:</label>
+        <select id="select-mes">
+          <option value="1">Enero</option>
+          <option value="2">Febrero</option>
+          <option value="3">Marzo</option>
+          <option value="4">Abril</option>
+          <option value="5">Mayo</option>
+          <option value="6">Junio</option>
+          <option value="7">Julio</option>
+          <option value="8">Agosto</option>
+          <option value="9">Septiembre</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+        </select>
+      </div>
+      <div id="filtro-inactivos" class="filtro-extra" style="display:none;">
+        <label>Sin compras en los últimos:</label>
+        <input type="number" id="input-dias" value="90" min="1" max="999">
+        <span>días</span>
+      </div>
+      <button id="btn-buscar-destinatarios" class="btn-secundario" style="margin-top:10px;">🔍 Buscar destinatarios</button>
+    </div>
+
+    <!-- PASO 3: Mensaje -->
+    <div class="paso">
+      <div class="paso-titulo">3. Mensaje</div>
+      <div class="opciones-mensaje">
+        <button class="btn-mensaje activo" data-mensaje="plantilla">Usar plantilla</button>
+        <button class="btn-mensaje" data-mensaje="libre">Escribir libremente</button>
+      </div>
+
+      <div id="bloque-plantilla">
+        <label>Plantilla:</label>
+        <select id="select-plantilla">
+          <option value="BIENVENIDA">Bienvenida</option>
+          <option value="OFERTA">Oferta</option>
+          <option value="CUMPLEANOS">Cumpleaños</option>
+        </select>
+      </div>
+
+      <div id="bloque-libre" style="display:none;">
+        <div id="campo-asunto-wrap">
+          <label>Asunto (solo para email):</label>
+          <input type="text" id="campo-asunto" placeholder="Asunto del email...">
+        </div>
+        <label>Mensaje:</label>
+        <textarea id="campo-mensaje" rows="5" placeholder="Escribe el mensaje aquí. Usa {nombre} para personalizar."></textarea>
+      </div>
+    </div>
+
+    <!-- PASO 4: Destinatarios encontrados -->
+    <div class="paso" id="bloque-destinatarios" style="display:none;">
+      <div class="paso-titulo">4. Destinatarios encontrados (<span id="contador-destinatarios">0</span>)</div>
+      <div id="lista-destinatarios"></div>
+      <button id="btn-lanzar" class="btn-primario" style="margin-top:14px;">🚀 Lanzar campaña</button>
+    </div>
+
+    <!-- RESULTADO email -->
+    <div id="bloque-resultado" class="resultado" style="display:none;"></div>
+
+  </div>
+
+  <div class="pie">
+    <button id="btn-cerrar" class="btn-secundario">Cerrar</button>
+  </div>
+
+  <script src="../js/campanas.js"></script>
+</body>
+</html>

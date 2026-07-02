@@ -197,7 +197,8 @@ function migrarTablas() {
       descuento DECIMAL(5,2) NOT NULL DEFAULT 0
     )
   `)
-// ===== MVP v2.0 — Fase 2: Módulo FIDELIZACIÓN =====
+
+  // ===== MVP v2.0 — Fase 2: Módulo FIDELIZACIÓN =====
   db.run(`
     CREATE TABLE IF NOT EXISTS MOVIMIENTOS_PUNTOS (
       id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -211,35 +212,122 @@ function migrarTablas() {
       FOREIGN KEY (id_venta) REFERENCES VENTAS(id_venta)
     )
   `)
+
+  // ===== MVP v2.0 — Fase 3: Módulo COMUNICACIÓN EMAIL =====
+  db.run(`
+    CREATE TABLE IF NOT EXISTS PLANTILLAS_EMAIL (
+      id_plantilla INTEGER PRIMARY KEY AUTOINCREMENT,
+      tipo TEXT NOT NULL UNIQUE,
+      asunto VARCHAR(255) NOT NULL,
+      cuerpo TEXT NOT NULL
+    )
+  `)
+  db.run(`INSERT OR IGNORE INTO PLANTILLAS_EMAIL (tipo, asunto, cuerpo) VALUES (
+    'BIENVENIDA',
+    'Bienvenido/a a Aula Verde',
+    'Hola {nombre}, gracias por confiar en Aula Verde. Estamos encantados de tenerte como cliente. Un saludo, Aula Verde'
+  )`)
+  db.run(`INSERT OR IGNORE INTO PLANTILLAS_EMAIL (tipo, asunto, cuerpo) VALUES (
+    'OFERTA',
+    'Una oferta especial para ti',
+    'Hola {nombre}, tenemos una oferta especial que no te puedes perder. Pásate por la tienda y descúbrela. Un saludo, Aula Verde'
+  )`)
+  db.run(`INSERT OR IGNORE INTO PLANTILLAS_EMAIL (tipo, asunto, cuerpo) VALUES (
+    'CUMPLEANOS',
+    '¡Feliz cumpleaños!',
+    'Hola {nombre}, desde Aula Verde queremos desearte un feliz cumpleaños. Como regalo, ¡pásate por la tienda y te haremos un descuento especial! Un saludo, Aula Verde'
+  )`)
+
+  // ===== MVP v2.0 — Fase 4: Módulo COMUNICACIÓN WHATSAPP =====
+  db.run(`
+    CREATE TABLE IF NOT EXISTS PLANTILLAS_WHATSAPP (
+      id_plantilla INTEGER PRIMARY KEY AUTOINCREMENT,
+      tipo TEXT NOT NULL UNIQUE,
+      mensaje TEXT NOT NULL
+    )
+  `)
+  db.run(`INSERT OR IGNORE INTO PLANTILLAS_WHATSAPP (tipo, mensaje) VALUES (
+    'BIENVENIDA',
+    'Hola {nombre}, bienvenido/a a Aula Verde. Gracias por confiar en nosotros, estamos encantados de tenerte como cliente.'
+  )`)
+  db.run(`INSERT OR IGNORE INTO PLANTILLAS_WHATSAPP (tipo, mensaje) VALUES (
+    'OFERTA',
+    'Hola {nombre}, tenemos una oferta especial para ti en Aula Verde. ¡Pásate por la tienda y descúbrela!'
+  )`)
+  db.run(`INSERT OR IGNORE INTO PLANTILLAS_WHATSAPP (tipo, mensaje) VALUES (
+    'CUMPLEANOS',
+    'Hola {nombre}, ¡feliz cumpleaños de parte de todo el equipo de Aula Verde! Pásate por la tienda y te haremos un descuento especial.'
+  )`)
+
   // Añadir columna recargo_equivalencia a PROVEEDORES si no existe
   try {
     db.run(`ALTER TABLE PROVEEDORES ADD COLUMN recargo_equivalencia BOOLEAN NOT NULL DEFAULT 0`)
-  } catch (e) {
-    // La columna ya existe, no hay problema
-  }
+  } catch (e) {}
+
   // Añadir columna api_key_anthropic si no existe todavía
   try {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN api_key_anthropic VARCHAR(255)`)
-  } catch (e) {
-    // La columna ya existe, no hay que hacer nada
-  }
+  } catch (e) {}
+
   // Añadir columnas de fidelización a CONFIGURACION si no existen todavía (MVP v2.0 - Fase 2)
   try {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN puntos_euros_por_punto DECIMAL(10,2) NOT NULL DEFAULT 10`)
-  } catch (e) {
-    // La columna ya existe, no hay que hacer nada
-  }
+  } catch (e) {}
   try {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN puntos_valor_canje DECIMAL(10,2) NOT NULL DEFAULT 5`)
-  } catch (e) {
-    // La columna ya existe, no hay que hacer nada
-  }
+  } catch (e) {}
+
+  // Añadir columnas SMTP a CONFIGURACION si no existen todavía (MVP v2.0 - Fase 3)
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_host VARCHAR(255)`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_puerto INTEGER`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_usuario VARCHAR(255)`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_password VARCHAR(255)`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_email_remitente VARCHAR(255)`)
+  } catch (e) {}
+
+  // Añadir columna prefijo_telefono a CLIENTES si no existe todavía (MVP v2.0 - Fase 4)
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN prefijo_telefono VARCHAR(5) NOT NULL DEFAULT '+34'`)
+  } catch (e) {}
+
   // Añadir columna id_cliente a VENTAS si no existe todavía (MVP v2.0 - Fase 1)
   try {
     db.run(`ALTER TABLE VENTAS ADD COLUMN id_cliente INTEGER REFERENCES CLIENTES(id_cliente)`)
-  } catch (e) {
-    // La columna ya existe, no hay que hacer nada
-  }
+  } catch (e) {}
+
+  // Añadir columna ruta_descargas a CONFIGURACION si no existe todavía
+  try {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN ruta_descargas VARCHAR(500) DEFAULT 'C:\\AulaVerde\\descargas'`)
+  } catch (e) {}
+
+  // ===== Consentimiento RGPD y marketing (cumplimiento legal) =====
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN consentimiento_rgpd BOOLEAN NOT NULL DEFAULT 0`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN fecha_consentimiento_rgpd DATE`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN consentimiento_email_marketing BOOLEAN NOT NULL DEFAULT 0`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN consentimiento_whatsapp_marketing BOOLEAN NOT NULL DEFAULT 0`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN metodo_consentimiento VARCHAR(20)`)
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN pdf_consentimiento_path VARCHAR(500)`)
+  } catch (e) {}
 
   guardarDB()
   console.log('Migración de tablas completada')
@@ -272,4 +360,4 @@ function getDB() {
   return db
 }
 
-module.exports = { inicializarDB, guardarDB, getDB }    
+module.exports = { inicializarDB, guardarDB, getDB }

@@ -125,7 +125,14 @@ document.getElementById('btn-filtrar-cat').addEventListener('click', cargarProdu
 document.getElementById('filtro-nombre').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') cargarProductos()
 })
-
+document.getElementById('btn-exportar-excel-catalogo').addEventListener('click', async () => {
+  const resultado = await ipcRenderer.invoke('exportar-catalogo-excel')
+  if (resultado.ok) {
+    alert('✅ Catálogo exportado correctamente en:\n' + resultado.ruta)
+  } else {
+    alert('❌ Error al exportar: ' + resultado.mensaje)
+  }
+})
 document.getElementById('btn-cerrar-cat').addEventListener('click', () => {
   window.close()
 })

@@ -38,9 +38,7 @@ body {
   cursor: pointer;
 }
 
-.btn-primario:hover {
-  background-color: #245524;
-}
+.btn-primario:hover { background-color: #245524; }
 
 .btn-secundario {
   background-color: #e0e0e0;
@@ -52,9 +50,7 @@ body {
   cursor: pointer;
 }
 
-.btn-secundario:hover {
-  background-color: #cfcfcf;
-}
+.btn-secundario:hover { background-color: #cfcfcf; }
 
 .panel-alertas {
   background-color: #fff8e1;
@@ -117,9 +113,7 @@ body {
   font-size: 14px;
 }
 
-.tabla-clientes tr:hover {
-  background-color: #f1f8e9;
-}
+.tabla-clientes tr:hover { background-color: #f1f8e9; }
 
 .badge-activo {
   background-color: #c8e6c9;
@@ -145,7 +139,44 @@ body {
   font-size: 12px;
 }
 
-.btn-editar, .btn-historial {
+.badge-puntos {
+  background-color: #fff3cd;
+  color: #8a6d00;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badge-rgpd-ok {
+  background-color: #c8e6c9;
+  color: #2d6a2d;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  cursor: pointer;
+  title: "Ver consentimientos";
+}
+
+.badge-rgpd-pendiente {
+  background-color: #fff3cd;
+  color: #8a6d00;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.badge-rgpd-no {
+  background-color: #ffcdd2;
+  color: #b71c1c;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.btn-editar, .btn-historial, .btn-email {
   background-color: #2d6a2d;
   color: white;
   border: none;
@@ -155,6 +186,42 @@ body {
   cursor: pointer;
   margin-right: 4px;
 }
+
+.btn-email {
+  background-color: #4a90a4;
+}
+
+.btn-email:hover { background-color: #357a8a; }
+
+.btn-email:disabled, .btn-whatsapp-fila:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-whatsapp-fila {
+  background-color: #25d366;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.btn-whatsapp-fila:hover { background-color: #1da851; }
+
+.btn-whatsapp {
+  background-color: #25d366;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-whatsapp:hover { background-color: #1da851; }
 
 .btn-toggle-activo {
   background-color: #b71c1c;
@@ -183,6 +250,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
 }
 
 .modal-caja {
@@ -194,9 +262,7 @@ body {
   overflow-y: auto;
 }
 
-.modal-grande {
-  width: 600px;
-}
+.modal-grande { width: 600px; }
 
 .modal-caja h2 {
   margin-top: 0;
@@ -210,13 +276,25 @@ body {
   color: #555;
 }
 
-.modal-caja input, .modal-caja textarea {
+.modal-caja input, .modal-caja textarea, .modal-caja select {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-top: 4px;
 }
+
+.fila-telefono {
+  display: flex;
+  gap: 8px;
+}
+
+.fila-telefono #campo-prefijo {
+  width: 70px;
+  flex: none;
+}
+
+.fila-telefono #campo-telefono { flex: 1; }
 
 .modal-botones {
   display: flex;
@@ -234,16 +312,85 @@ body {
   font-size: 13px;
 }
 
+.email-preview {
+  margin-top: 14px;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #444;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* ─── Estilos del modal de consentimiento ─── */
+
+.texto-info {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.opciones-consentimiento {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-opcion-consentimiento {
+  padding: 12px 16px;
+  border: 2px solid #2d6a2d;
+  background: white;
+  color: #2d6a2d;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.btn-opcion-consentimiento:hover {
+  background-color: #2d6a2d;
+  color: white;
+}
+
+.btn-opcion-secundario {
+  border-color: #ccc;
+  color: #888;
+  font-weight: normal;
+}
+
+.btn-opcion-secundario:hover {
+  background-color: #f5f5f5;
+  color: #555;
+}
+
+.checkbox-consentimiento {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.checkbox-consentimiento label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  color: #333;
+  margin-top: 0;
+}
+
+.checkbox-consentimiento input[type="checkbox"] {
+  width: auto;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
 .pie {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
-}
-.badge-puntos {
-  background-color: #fff3cd;
-  color: #8a6d00;
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: bold;
 }

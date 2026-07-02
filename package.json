@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "node-thermal-printer": "^4.6.0",
+    "nodemailer": "^9.0.3",
     "pdf-to-printer": "^5.8.0",
     "sql.js": "^1.14.1",
     "xlsx": "^0.18.5"

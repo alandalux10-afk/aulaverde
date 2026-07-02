@@ -141,3 +141,56 @@ body {
 #btn-exportar-csv:hover {
   background: #33691e;
 }
+.grupo small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #888;
+}
+
+#btn-probar-smtp {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #4a90a4;
+  color: white;
+}
+
+#btn-probar-smtp:hover {
+  background: #357a8a;
+}
+
+.separador {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 24px 0;
+}
+.fila-carpeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.fila-carpeta input {
+  flex: 1;
+}
+
+#btn-seleccionar-carpeta {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #4a90a4;
+  color: white;
+  white-space: nowrap;
+}
+
+#btn-seleccionar-carpeta:hover {
+  background: #357a8a;
+}

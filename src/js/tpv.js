@@ -523,7 +523,9 @@ document.getElementById('btn-proveedores').addEventListener('click', () => {
 document.getElementById('btn-clientes').addEventListener('click', () => {
   ipcRenderer.invoke('abrir-clientes')
 })
-
+document.getElementById('btn-campanas').addEventListener('click', () => {
+  ipcRenderer.invoke('abrir-campanas')
+})
 function abrirOpciones() {
   if (lineaSeleccionada === null) {
     alert('Selecciona una línea para editar')

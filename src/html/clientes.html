@@ -37,6 +37,7 @@
         <th>Email</th>
         <th>Descuento</th>
         <th>Puntos</th>
+        <th>RGPD</th>
         <th>Estado</th>
         <th>Acciones</th>
       </tr>
@@ -53,7 +54,10 @@
       <input type="text" id="campo-nombre">
 
       <label>Teléfono</label>
-      <input type="text" id="campo-telefono">
+      <div class="fila-telefono">
+        <input type="text" id="campo-prefijo" placeholder="+34" maxlength="5">
+        <input type="text" id="campo-telefono" placeholder="666123123">
+      </div>
 
       <label>Email</label>
       <input type="email" id="campo-email">
@@ -100,6 +104,85 @@
       </table>
       <div class="modal-botones">
         <button id="btn-cerrar-historial" class="btn-secundario">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal enviar email -->
+  <div id="modal-email" class="modal-overlay" style="display:none;">
+    <div class="modal-caja">
+      <h2 id="email-titulo">Enviar email</h2>
+      <label>Plantilla</label>
+      <select id="campo-plantilla">
+        <option value="BIENVENIDA">Bienvenida</option>
+        <option value="OFERTA">Oferta</option>
+        <option value="CUMPLEANOS">Cumpleaños</option>
+      </select>
+      <div id="email-preview" class="email-preview"></div>
+      <div id="email-mensaje" class="mensaje-error" style="display:none;"></div>
+      <div class="modal-botones">
+        <button id="btn-cancelar-email" class="btn-secundario">Cancelar</button>
+        <button id="btn-enviar-email" class="btn-primario">📧 Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal enviar WhatsApp -->
+  <div id="modal-whatsapp" class="modal-overlay" style="display:none;">
+    <div class="modal-caja">
+      <h2 id="whatsapp-titulo">Enviar WhatsApp</h2>
+      <label>Plantilla</label>
+      <select id="campo-plantilla-whatsapp">
+        <option value="BIENVENIDA">Bienvenida</option>
+        <option value="OFERTA">Oferta</option>
+        <option value="CUMPLEANOS">Cumpleaños</option>
+      </select>
+      <div id="whatsapp-preview" class="email-preview"></div>
+      <div class="modal-botones">
+        <button id="btn-cancelar-whatsapp" class="btn-secundario">Cancelar</button>
+        <button id="btn-abrir-whatsapp" class="btn-whatsapp">📱 Abrir WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal consentimiento RGPD -->
+  <div id="modal-consentimiento" class="modal-overlay" style="display:none;">
+    <div class="modal-caja modal-grande">
+      <h2>📋 Consentimiento RGPD</h2>
+      <p class="texto-info">El cliente acaba de ser registrado. Ahora debe aceptar el formulario de consentimiento. Elige cómo proceder:</p>
+
+      <div class="opciones-consentimiento">
+        <button class="btn-opcion-consentimiento" id="btn-cons-imprimir">🖨️ Imprimir para firmar en papel</button>
+        <button class="btn-opcion-consentimiento" id="btn-cons-email">📧 Enviar por email</button>
+        <button class="btn-opcion-consentimiento" id="btn-cons-whatsapp">📱 Enviar por WhatsApp</button>
+        <button class="btn-opcion-consentimiento btn-opcion-secundario" id="btn-cons-saltar">⏭️ Saltar (ya firmó en papel)</button>
+      </div>
+
+      <div id="bloque-registrar-consentimiento" style="display:none;">
+        <hr style="margin:16px 0;">
+        <p class="texto-info"><strong>Registra qué ha aceptado el cliente:</strong></p>
+
+        <div class="checkbox-consentimiento">
+          <label>
+            <input type="checkbox" id="check-rgpd"> ✅ Acepta el tratamiento de datos personales (RGPD) — <em>obligatorio</em>
+          </label>
+        </div>
+        <div class="checkbox-consentimiento">
+          <label>
+            <input type="checkbox" id="check-email-marketing"> 📧 Acepta recibir comunicaciones comerciales por email
+          </label>
+        </div>
+        <div class="checkbox-consentimiento">
+          <label>
+            <input type="checkbox" id="check-whatsapp-marketing"> 📱 Acepta recibir comunicaciones comerciales por WhatsApp
+          </label>
+        </div>
+
+        <div id="consentimiento-mensaje" class="mensaje-error" style="display:none;"></div>
+
+        <div class="modal-botones" style="margin-top:14px;">
+          <button id="btn-guardar-consentimiento" class="btn-primario">💾 Guardar consentimiento</button>
+        </div>
       </div>
     </div>
   </div>
