@@ -2,3 +2,19 @@ node_modules/
 actualizar.js
 instalar.js
 *.bak
+
+# Datos de runtime y generados por la app: NUNCA deben versionarse
+# (contienen la base de datos con credenciales, datos personales de clientes
+# sujetos a RGPD, PDFs de facturas, tickets y backups)
+data/
+descargas/
+*.db
+*.db-journal
+
+# Variables de entorno / secretos
+.env
+.env.local
+
+# Sistema
+appPOS80AMUSE
+npm
