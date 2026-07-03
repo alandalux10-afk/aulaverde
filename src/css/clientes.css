@@ -394,3 +394,28 @@ body {
   display: flex;
   justify-content: flex-end;
 }
+.btn-adjuntar {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.btn-adjuntar:hover { background-color: #e65100; }
+
+.btn-ver-doc {
+  background-color: #9c27b0;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.btn-ver-doc:hover { background-color: #6a1b9a; }

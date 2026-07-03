@@ -91,6 +91,8 @@ async function renderizarTabla(lista) {
         <button class="btn-editar" onclick="abrirModalEditar(${c.id_cliente})">Editar</button>
         <button class="btn-email" ${puedeEmail ? '' : 'disabled'} title="${emailTitle}" onclick="${puedeEmail ? `abrirModalEmail(${c.id_cliente})` : ''}">📧</button>
         <button class="btn-whatsapp-fila" ${puedeWA ? '' : 'disabled'} title="${waTitle}" onclick="${puedeWA ? `abrirModalWhatsapp(${c.id_cliente})` : ''}">📱</button>
+        <button class="btn-adjuntar" onclick="adjuntarDocumento(${c.id_cliente})" title="Adjuntar documento firmado escaneado">📎</button>
+        ${c.pdf_consentimiento_path ? `<button class="btn-ver-doc" onclick="verDocumento('${c.pdf_consentimiento_path.replace(/\\/g, '\\\\')}')" title="Ver documento firmado">📄</button>` : ''}
         <button class="${c.activo ? 'btn-toggle-activo' : 'btn-toggle-inactivo'}" onclick="toggleCliente(${c.id_cliente}, ${c.activo ? 0 : 1})">
           ${c.activo ? 'Desactivar' : 'Activar'}
         </button>
@@ -455,6 +457,22 @@ async function abrirWhatsapp() {
 }
 
 // Eventos
+async function adjuntarDocumento(idCliente) {
+  const resultado = await ipcRenderer.invoke('adjuntar-documento-firmado', idCliente)
+  if (resultado.ok) {
+    alert('✅ Documento adjuntado correctamente:\n' + resultado.ruta)
+    await cargarClientes()
+  } else if (resultado.mensaje !== 'No se seleccionó ningún archivo') {
+    alert('❌ Error al adjuntar: ' + resultado.mensaje)
+  }
+}
+
+async function verDocumento(ruta) {
+  const resultado = await ipcRenderer.invoke('abrir-documento-consentimiento', ruta)
+  if (!resultado.ok) {
+    alert('❌ No se pudo abrir el documento: ' + resultado.mensaje)
+  }
+}
 document.getElementById('btn-nuevo-cliente').addEventListener('click', abrirModalNuevo)
 document.getElementById('btn-importar-clientes').addEventListener('click', importarClientes)
 document.getElementById('btn-cancelar').addEventListener('click', cerrarModal)
