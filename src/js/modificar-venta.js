@@ -67,6 +67,7 @@ async function cargarVentaConId(id) {
   lineas = datos.lineas.map((l, i) => ({
     numero: i + 1,
     id_linea: l.id_linea,
+    id_producto: l.id_producto,
     codigo: l.codigo_producto,
     nombre: l.nombre_producto,
     cantidad: l.cantidad,
@@ -92,6 +93,7 @@ document.getElementById('input-busqueda-mod').addEventListener('input', async fu
     div.addEventListener('click', () => {
       const nueva = {
         numero: lineas.length + 1,
+        id_producto: p.id_producto,
         codigo: p.codigo,
         nombre: p.nombre,
         cantidad: 1,

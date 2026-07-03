@@ -98,6 +98,24 @@ function guardarVenta(lineas, formaPago, tipoDocumento, cliente, puntosCanjear) 
     const baseLinea = totalConIva / divisor
     const ivaLinea = totalConIva - baseLinea
 
+    // El id_producto real viaja en la línea desde que el buscador del TPV lo
+    // incluye (ver buscar-productos en main.js). Si por lo que sea no llega
+    // (ej. líneas manuales sin producto, o una vía antigua que no lo pase),
+    // se resuelve por código antes de guardar en vez de escribir un valor fijo.
+    let idProducto = linea.id_producto || null
+    if (!idProducto && linea.codigo) {
+      const prodResult = db.exec('SELECT id_producto FROM PRODUCTOS WHERE codigo = ?', [linea.codigo])
+      if (prodResult.length && prodResult[0].values.length) {
+        idProducto = prodResult[0].values[0][0]
+      }
+    }
+    // Última red de seguridad: una línea manual sin código no corresponde a
+    // ningún producto real. La columna id_producto es NOT NULL (no admite
+    // vacío), así que se usa 0 como marca explícita de "sin producto
+    // asociado" — a diferencia del bug anterior, aquí es intencional y solo
+    // ocurre en líneas manuales, no en todas las ventas.
+    if (!idProducto) idProducto = 0
+
     db.run(`
       INSERT INTO LINEAS_VENTA (
         id_venta, numero_linea, id_producto, codigo_producto,
@@ -105,7 +123,7 @@ function guardarVenta(lineas, formaPago, tipoDocumento, cliente, puntosCanjear) 
         porcentaje_iva, importe_iva, total_linea
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      idVenta, index + 1, 1, linea.codigo,
+      idVenta, index + 1, idProducto, linea.codigo,
       linea.nombre, linea.cantidad, linea.precio, linea.descuento,
       linea.iva, Number(ivaLinea.toFixed(2)), totalConIva
     ])

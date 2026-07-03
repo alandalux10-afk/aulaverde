@@ -106,13 +106,17 @@ ipcMain.handle('importar-productos', () => {
 
 ipcMain.handle('buscar-productos', (event, texto) => {
   const db = getDB()
+  // Nota: se incluye p.id_producto (antes no se seleccionaba, lo que obligaba
+  // a guardar un id_producto falso al añadir el producto a una venta).
+  // Consulta parametrizada para evitar inyección SQL desde el texto de búsqueda.
+  const patron = `%${texto}%`
   const resultados = db.exec(`
-    SELECT p.codigo, p.nombre, p.precio_venta, t.porcentaje as porcentaje_iva
+    SELECT p.id_producto, p.codigo, p.nombre, p.precio_venta, t.porcentaje as porcentaje_iva
     FROM PRODUCTOS p
     JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
-    WHERE p.activo = 1 AND (p.nombre LIKE '%${texto}%' OR p.codigo LIKE '%${texto}%')
+    WHERE p.activo = 1 AND (p.nombre LIKE ? OR p.codigo LIKE ?)
     LIMIT 10
-  `)
+  `, [patron, patron])
   if (!resultados.length) return []
   const cols = resultados[0].columns
   return resultados[0].values.map(row => {
@@ -420,9 +424,20 @@ ipcMain.handle('modificar-venta', (event, idVenta, lineas) => {
       const conIva = bruto - dto
       const divisor = 1 + l.iva / 100
       const ivaLinea = conIva - conIva / divisor
+      // Igual que en el cobro normal (ventas.js): usar el id_producto real
+      // de la línea, resolviéndolo por código si no llega, en vez de un
+      // valor fijo. 0 solo se usa para líneas manuales sin producto real.
+      let idProducto = l.id_producto || null
+      if (!idProducto && l.codigo) {
+        const prodResult = db.exec('SELECT id_producto FROM PRODUCTOS WHERE codigo = ?', [l.codigo])
+        if (prodResult.length && prodResult[0].values.length) {
+          idProducto = prodResult[0].values[0][0]
+        }
+      }
+      if (!idProducto) idProducto = 0
       db.run(
         'INSERT INTO LINEAS_VENTA (id_venta, numero_linea, id_producto, codigo_producto, nombre_producto, cantidad, precio_unitario, descuento, porcentaje_iva, importe_iva, total_linea) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [idVenta, i + 1, 0, l.codigo, l.nombre, l.cantidad, l.precio, l.descuento, l.iva, Number(ivaLinea.toFixed(2)), Number(conIva.toFixed(2))]
+        [idVenta, i + 1, idProducto, l.codigo, l.nombre, l.cantidad, l.precio, l.descuento, l.iva, Number(ivaLinea.toFixed(2)), Number(conIva.toFixed(2))]
       )
     })
     guardarDB()

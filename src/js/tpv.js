@@ -251,6 +251,7 @@ document.getElementById('btn-quitar-cliente').addEventListener('click', () => {
 function agregarProductoALinea(p) {
   const nuevaLinea = {
     numero: lineas.length + 1,
+    id_producto: p.id_producto,
     codigo: p.codigo,
     nombre: p.nombre,
     cantidad: 1,
