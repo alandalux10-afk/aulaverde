@@ -1313,8 +1313,8 @@ ipcMain.handle('crear-cliente', (event, datos) => {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
     db.run(
-      'INSERT INTO CLIENTES (nombre, telefono, prefijo_telefono, email, fecha_nacimiento, direccion, nif, notas, activo, descuento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
-      [datos.nombre, datos.telefono, datos.prefijo_telefono||'+34', datos.email, datos.fecha_nacimiento||null, datos.direccion, datos.nif, datos.notas, datos.descuento||0]
+      'INSERT INTO CLIENTES (nombre, tipo_cliente, telefono, prefijo_telefono, email, fecha_nacimiento, direccion, nif, notas, activo, descuento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+      [datos.nombre, datos.tipo_cliente||'PARTICULAR', datos.telefono, datos.prefijo_telefono||'+34', datos.email, datos.fecha_nacimiento||null, datos.direccion, datos.nif||'', datos.notas, datos.descuento||0]
     )
     guardarDB()
     return { ok: true }
@@ -1328,8 +1328,8 @@ ipcMain.handle('editar-cliente', (event, idCliente, datos) => {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
     db.run(
-      'UPDATE CLIENTES SET nombre=?, telefono=?, prefijo_telefono=?, email=?, fecha_nacimiento=?, direccion=?, nif=?, notas=?, descuento=? WHERE id_cliente=?',
-      [datos.nombre, datos.telefono, datos.prefijo_telefono||'+34', datos.email, datos.fecha_nacimiento||null, datos.direccion, datos.nif, datos.notas, datos.descuento||0, idCliente]
+      'UPDATE CLIENTES SET nombre=?, tipo_cliente=?, telefono=?, prefijo_telefono=?, email=?, fecha_nacimiento=?, direccion=?, nif=?, notas=?, descuento=? WHERE id_cliente=?',
+      [datos.nombre, datos.tipo_cliente||'PARTICULAR', datos.telefono, datos.prefijo_telefono||'+34', datos.email, datos.fecha_nacimiento||null, datos.direccion, datos.nif||'', datos.notas, datos.descuento||0, idCliente]
     )
     guardarDB()
     return { ok: true }

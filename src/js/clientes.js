@@ -126,6 +126,8 @@ function abrirModalNuevo() {
   document.getElementById('campo-nif').value = ''
   document.getElementById('campo-descuento').value = '0'
   document.getElementById('campo-notas').value = ''
+  document.getElementById('campo-tipo-cliente').value = 'PARTICULAR'
+  document.getElementById('bloque-nif').style.display = 'none'
   ocultarError()
   document.getElementById('modal-cliente').style.display = 'flex'
   document.getElementById('campo-nombre').focus()
@@ -142,6 +144,8 @@ function abrirModalEditar(idCliente) {
   document.getElementById('campo-email').value = c.email || ''
   document.getElementById('campo-fecha-nacimiento').value = c.fecha_nacimiento || ''
   document.getElementById('campo-direccion').value = c.direccion || ''
+  document.getElementById('campo-tipo-cliente').value = c.tipo_cliente || 'PARTICULAR'
+  document.getElementById('bloque-nif').style.display = (c.tipo_cliente === 'PROFESIONAL') ? 'block' : 'none'
   document.getElementById('campo-nif').value = c.nif || ''
   document.getElementById('campo-descuento').value = c.descuento || 0
   document.getElementById('campo-notas').value = c.notas || ''
@@ -167,14 +171,16 @@ async function guardarCliente() {
     return
   }
 
+const tipoCliente = document.getElementById('campo-tipo-cliente').value
   const datos = {
     nombre,
+    tipo_cliente: tipoCliente,
     prefijo_telefono: document.getElementById('campo-prefijo').value.trim() || '+34',
     telefono: document.getElementById('campo-telefono').value.trim(),
     email: document.getElementById('campo-email').value.trim(),
     fecha_nacimiento: document.getElementById('campo-fecha-nacimiento').value,
     direccion: document.getElementById('campo-direccion').value.trim(),
-    nif: document.getElementById('campo-nif').value.trim(),
+    nif: tipoCliente === 'PROFESIONAL' ? document.getElementById('campo-nif').value.trim() : '',
     descuento,
     notas: document.getElementById('campo-notas').value.trim()
   }
@@ -465,3 +471,6 @@ document.getElementById('btn-enviar-email').addEventListener('click', enviarEmai
 document.getElementById('campo-plantilla-whatsapp').addEventListener('change', actualizarPreviewWhatsapp)
 document.getElementById('btn-cancelar-whatsapp').addEventListener('click', cerrarModalWhatsapp)
 document.getElementById('btn-abrir-whatsapp').addEventListener('click', abrirWhatsapp)
+document.getElementById('campo-tipo-cliente').addEventListener('change', function() {
+  document.getElementById('bloque-nif').style.display = this.value === 'PROFESIONAL' ? 'block' : 'none'
+})

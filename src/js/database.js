@@ -328,7 +328,10 @@ function migrarTablas() {
   try {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN pdf_consentimiento_path VARCHAR(500)`)
   } catch (e) {}
-
+// Tipo de cliente: PARTICULAR o PROFESIONAL (cumplimiento RGPD - minimización de datos)
+  try {
+    db.run(`ALTER TABLE CLIENTES ADD COLUMN tipo_cliente VARCHAR(20) NOT NULL DEFAULT 'PARTICULAR'`)
+  } catch (e) {}
   guardarDB()
   console.log('Migración de tablas completada')
 }
