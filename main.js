@@ -145,8 +145,8 @@ ipcMain.handle('abrir-consultas', () => {
 
 ipcMain.handle('obtener-ventas', (event, desde, hasta) => {
   const db = getDB()
-  const sql = "SELECT v.id_venta, v.numero_documento, v.fecha, v.hora, v.cliente, v.estado, v.tipo_documento, v.total_venta, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha >= '" + desde + "' AND v.fecha <= '" + hasta + "' ORDER BY v.id_venta DESC"
-  const resultados = db.exec(sql)
+  const sql = "SELECT v.id_venta, v.numero_documento, v.fecha, v.hora, v.cliente, v.estado, v.tipo_documento, v.total_venta, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha >= ? AND v.fecha <= ? ORDER BY v.id_venta DESC"
+  const resultados = db.exec(sql, [desde, hasta])
   if (!resultados.length) return []
   const cols = resultados[0].columns
   return resultados[0].values.map(row => {
@@ -180,7 +180,7 @@ ipcMain.handle('abrir-resumen', () => {
 
 ipcMain.handle('obtener-resumen', (event, fecha) => {
   const db = getDB()
-  const ventas = db.exec("SELECT v.total_venta, v.estado, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha = '" + fecha + "'")
+  const ventas = db.exec("SELECT v.total_venta, v.estado, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha = ?", [fecha])
   let numOperaciones = 0, totalVentas = 0, efectivo = 0, tarjeta = 0, pendientes = 0
   if (ventas.length && ventas[0].values.length) {
     ventas[0].values.forEach(row => {
@@ -196,7 +196,7 @@ ipcMain.handle('obtener-resumen', (event, fecha) => {
     })
   }
   const ticketMedio = numOperaciones > 0 ? totalVentas / numOperaciones : 0
-  const top = db.exec("SELECT lv.nombre_producto, SUM(lv.cantidad) as cantidad, SUM(lv.total_linea) as total FROM LINEAS_VENTA lv JOIN VENTAS v ON lv.id_venta = v.id_venta WHERE v.fecha = '" + fecha + "' GROUP BY lv.nombre_producto ORDER BY cantidad DESC LIMIT 5")
+  const top = db.exec("SELECT lv.nombre_producto, SUM(lv.cantidad) as cantidad, SUM(lv.total_linea) as total FROM LINEAS_VENTA lv JOIN VENTAS v ON lv.id_venta = v.id_venta WHERE v.fecha = ? GROUP BY lv.nombre_producto ORDER BY cantidad DESC LIMIT 5", [fecha])
   const topProductos = []
   if (top.length && top[0].values.length) {
     top[0].values.forEach(row => topProductos.push({ nombre: row[0], cantidad: row[1], total: row[2] }))
@@ -206,8 +206,8 @@ ipcMain.handle('obtener-resumen', (event, fecha) => {
     FROM LINEAS_VENTA lv
     JOIN VENTAS v ON lv.id_venta = v.id_venta
     JOIN PRODUCTOS p ON lv.codigo_producto = p.codigo
-    WHERE v.fecha = '${fecha}' AND v.estado = 'COBRADO'
-  `)
+    WHERE v.fecha = ? AND v.estado = 'COBRADO'
+  `, [fecha])
   const beneficio = beneficioResult.length && beneficioResult[0].values[0][0]
     ? beneficioResult[0].values[0][0]
     : 0
@@ -251,13 +251,13 @@ ipcMain.handle('reimprimir-ticket', async (event, idVenta) => {
       SELECT v.*, f.nombre as forma_pago
       FROM VENTAS v
       JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago
-      WHERE v.id_venta = ${idVenta}
-    `)
+      WHERE v.id_venta = ?
+    `, [idVenta])
     if (!ventaResult.length) return { ok: false, mensaje: 'Venta no encontrada' }
     const cols = ventaResult[0].columns
     const venta = {}
     ventaResult[0].values[0].forEach((val, i) => venta[cols[i]] = val)
-    const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ${idVenta}`)
+    const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ?`, [idVenta])
     const lineas = []
     if (lineasResult.length && lineasResult[0].values.length) {
       const lCols = lineasResult[0].columns
@@ -373,13 +373,13 @@ ipcMain.handle('obtener-venta-detalle', (event, idVenta) => {
     SELECT v.*, f.nombre as forma_pago
     FROM VENTAS v
     JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago
-    WHERE v.id_venta = ${idVenta}
-  `)
+    WHERE v.id_venta = ?
+  `, [idVenta])
   if (!ventaResult.length) return null
   const vCols = ventaResult[0].columns
   const venta = {}
   ventaResult[0].values[0].forEach((val, i) => venta[vCols[i]] = val)
-  const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ${idVenta} ORDER BY numero_linea`)
+  const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ? ORDER BY numero_linea`, [idVenta])
   const lineas = []
   if (lineasResult.length && lineasResult[0].values.length) {
     const lCols = lineasResult[0].columns
@@ -456,11 +456,21 @@ ipcMain.handle('obtener-productos-catalogo', (event, filtros) => {
     JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
     WHERE 1=1
   `
-  if (filtros.nombre) sql += ` AND (p.nombre LIKE '%${filtros.nombre}%' OR p.codigo LIKE '%${filtros.nombre}%')`
-  if (filtros.familia) sql += ` AND p.familia = '${filtros.familia}'`
-  if (filtros.activo !== '') sql += ` AND p.activo = ${filtros.activo}`
+  const params = []
+  if (filtros.nombre) {
+    sql += ` AND (p.nombre LIKE ? OR p.codigo LIKE ?)`
+    params.push(`%${filtros.nombre}%`, `%${filtros.nombre}%`)
+  }
+  if (filtros.familia) {
+    sql += ` AND p.familia = ?`
+    params.push(filtros.familia)
+  }
+  if (filtros.activo !== '') {
+    sql += ` AND p.activo = ?`
+    params.push(filtros.activo)
+  }
   sql += ' ORDER BY p.codigo ASC'
-  const result = db.exec(sql)
+  const result = db.exec(sql, params)
   if (!result.length) return []
   const cols = result[0].columns
   return result[0].values.map(row => {
@@ -474,7 +484,7 @@ ipcMain.handle('crear-producto', (event, datos) => {
   try {
     const db = getDB()
     const { guardarDB } = require('./src/js/database')
-    const existe = db.exec(`SELECT id_producto FROM PRODUCTOS WHERE codigo = '${datos.codigo}'`)
+    const existe = db.exec(`SELECT id_producto FROM PRODUCTOS WHERE codigo = ?`, [datos.codigo])
     if (existe.length && existe[0].values.length) {
       return { ok: false, mensaje: 'Ya existe un producto con el código ' + datos.codigo }
     }
@@ -551,13 +561,13 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
       SELECT v.*, f.nombre as forma_pago
       FROM VENTAS v
       JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago
-      WHERE v.id_venta = ${idVenta}
-    `)
+      WHERE v.id_venta = ?
+    `, [idVenta])
     if (!ventaResult.length) return { ok: false }
     const cols = ventaResult[0].columns
     const venta = {}
     ventaResult[0].values[0].forEach((val, i) => venta[cols[i]] = val)
-    const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ${idVenta} ORDER BY numero_linea`)
+    const lineasResult = db.exec(`SELECT * FROM LINEAS_VENTA WHERE id_venta = ? ORDER BY numero_linea`, [idVenta])
     const lineas = []
     if (lineasResult.length && lineasResult[0].values.length) {
       const lCols = lineasResult[0].columns
@@ -663,7 +673,7 @@ ipcMain.handle('exportar-csv', () => {
 
 ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
   const db = getDB()
-  const ventas = db.exec("SELECT v.total_venta, v.estado, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha >= '" + desde + "' AND v.fecha <= '" + hasta + "'")
+  const ventas = db.exec("SELECT v.total_venta, v.estado, f.nombre as forma_pago FROM VENTAS v JOIN FORMAS_PAGO f ON v.id_forma_pago = f.id_forma_pago WHERE v.fecha >= ? AND v.fecha <= ?", [desde, hasta])
   let numOperaciones = 0, totalVentas = 0, efectivo = 0, tarjeta = 0, pendientes = 0
   if (ventas.length && ventas[0].values.length) {
     ventas[0].values.forEach(row => {
@@ -679,7 +689,7 @@ ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
     })
   }
   const ticketMedio = numOperaciones > 0 ? totalVentas / numOperaciones : 0
-  const top = db.exec("SELECT lv.nombre_producto, SUM(lv.cantidad) as cantidad, SUM(lv.total_linea) as total FROM LINEAS_VENTA lv JOIN VENTAS v ON lv.id_venta = v.id_venta WHERE v.fecha >= '" + desde + "' AND v.fecha <= '" + hasta + "' GROUP BY lv.nombre_producto ORDER BY cantidad DESC LIMIT 5")
+  const top = db.exec("SELECT lv.nombre_producto, SUM(lv.cantidad) as cantidad, SUM(lv.total_linea) as total FROM LINEAS_VENTA lv JOIN VENTAS v ON lv.id_venta = v.id_venta WHERE v.fecha >= ? AND v.fecha <= ? GROUP BY lv.nombre_producto ORDER BY cantidad DESC LIMIT 5", [desde, hasta])
   const topProductos = []
   if (top.length && top[0].values.length) {
     top[0].values.forEach(row => topProductos.push({ nombre: row[0], cantidad: row[1], total: row[2] }))
@@ -689,8 +699,8 @@ ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
     FROM LINEAS_VENTA lv
     JOIN VENTAS v ON lv.id_venta = v.id_venta
     JOIN PRODUCTOS p ON lv.codigo_producto = p.codigo
-    WHERE v.fecha >= '${desde}' AND v.fecha <= '${hasta}' AND v.estado = 'COBRADO'
-  `)
+    WHERE v.fecha >= ? AND v.fecha <= ? AND v.estado = 'COBRADO'
+  `, [desde, hasta])
   const beneficio = beneficioResult.length && beneficioResult[0].values[0][0]
     ? beneficioResult[0].values[0][0]
     : 0
@@ -759,7 +769,7 @@ ipcMain.handle('importar-proveedores-excel', async (event) => {
       const nombre = (fila['Nombre'] || '').toString().trim()
       if (!nombre) return
 
-      const existe = db.exec(`SELECT id_proveedor FROM PROVEEDORES WHERE nombre = '${nombre.replace(/'/g, "''")}'`)
+      const existe = db.exec(`SELECT id_proveedor FROM PROVEEDORES WHERE nombre = ?`, [nombre])
       if (existe.length && existe[0].values.length) {
         omitidos++
         return
@@ -938,7 +948,7 @@ ipcMain.handle('obtener-siguiente-codigo-producto', () => {
 
 ipcMain.handle('obtener-id-iva-por-porcentaje', (event, porcentaje) => {
   const db = getDB()
-  const result = db.exec(`SELECT id_iva FROM TIPOS_IVA WHERE porcentaje = ${porcentaje} AND activo = 1 LIMIT 1`)
+  const result = db.exec(`SELECT id_iva FROM TIPOS_IVA WHERE porcentaje = ? AND activo = 1 LIMIT 1`, [porcentaje])
   if (result.length && result[0].values.length) return result[0].values[0][0]
   return 2
 })
@@ -957,7 +967,7 @@ ipcMain.handle('obtener-productos-para-selector', () => {
 
 ipcMain.handle('obtener-correspondencias', (event, idProveedor) => {
   const db = getDB()
-  const result = db.exec(`SELECT * FROM PRODUCTOS_PROVEEDOR WHERE id_proveedor = ${idProveedor} AND activo = 1`)
+  const result = db.exec(`SELECT * FROM PRODUCTOS_PROVEEDOR WHERE id_proveedor = ? AND activo = 1`, [idProveedor])
   if (!result.length) return []
   const cols = result[0].columns
   return result[0].values.map(row => {
@@ -1043,12 +1053,22 @@ ipcMain.handle('obtener-compras', (event, filtros) => {
     JOIN PROVEEDORES p ON c.id_proveedor = p.id_proveedor
     WHERE 1=1
   `
-  if (filtros.idProveedor) sql += ` AND c.id_proveedor = ${filtros.idProveedor}`
-  if (filtros.desde) sql += ` AND c.fecha >= '${filtros.desde}'`
-  if (filtros.hasta) sql += ` AND c.fecha <= '${filtros.hasta}'`
+  const params = []
+  if (filtros.idProveedor) {
+    sql += ` AND c.id_proveedor = ?`
+    params.push(filtros.idProveedor)
+  }
+  if (filtros.desde) {
+    sql += ` AND c.fecha >= ?`
+    params.push(filtros.desde)
+  }
+  if (filtros.hasta) {
+    sql += ` AND c.fecha <= ?`
+    params.push(filtros.hasta)
+  }
   sql += ' ORDER BY c.fecha DESC, c.id_compra DESC'
 
-  const result = db.exec(sql)
+  const result = db.exec(sql, params)
   if (!result.length) return []
   const cols = result[0].columns
   return result[0].values.map(row => {
@@ -1067,10 +1087,10 @@ ipcMain.handle('exportar-listado-ventas', async (event, filtros) => {
     const ventasResult = db.exec(`
       SELECT v.id_venta, v.numero_documento, v.fecha, v.cliente, v.total_venta
       FROM VENTAS v
-      WHERE v.fecha >= '${filtros.desde}' AND v.fecha <= '${filtros.hasta}'
+      WHERE v.fecha >= ? AND v.fecha <= ?
       AND v.estado = 'COBRADO'
       ORDER BY v.fecha ASC, v.id_venta ASC
-    `)
+    `, [filtros.desde, filtros.hasta])
 
     if (!ventasResult.length || !ventasResult[0].values.length) {
       return { ok: false, mensaje: 'No hay ventas en el período seleccionado.' }
@@ -1090,9 +1110,9 @@ ipcMain.handle('exportar-listado-ventas', async (event, filtros) => {
                SUM(total_linea / (1 + porcentaje_iva / 100.0)) as base,
                SUM(importe_iva) as iva
         FROM LINEAS_VENTA
-        WHERE id_venta = ${venta.id_venta}
+        WHERE id_venta = ?
         GROUP BY porcentaje_iva
-      `)
+      `, [venta.id_venta])
 
       let base4=0,iva4=0,base10=0,iva10=0,base21=0,iva21=0,base0=0,iva0=0,baseTotal=0
 
@@ -1144,9 +1164,9 @@ ipcMain.handle('exportar-listado-facturas', async (event, filtros) => {
              p.nombre as nombre_proveedor, p.recargo_equivalencia
       FROM COMPRAS c
       JOIN PROVEEDORES p ON c.id_proveedor = p.id_proveedor
-      WHERE c.fecha >= '${filtros.desde}' AND c.fecha <= '${filtros.hasta}'
+      WHERE c.fecha >= ? AND c.fecha <= ?
       ORDER BY c.fecha ASC, c.id_compra ASC
-    `)
+    `, [filtros.desde, filtros.hasta])
 
     if (!comprasResult.length || !comprasResult[0].values.length) {
       return { ok: false, mensaje: 'No hay facturas en el período seleccionado.' }
@@ -1165,9 +1185,9 @@ ipcMain.handle('exportar-listado-facturas', async (event, filtros) => {
         SELECT porcentaje_iva, SUM(total_linea / (1 + porcentaje_iva / 100.0)) as base,
                SUM(importe_iva) as iva
         FROM LINEAS_COMPRA
-        WHERE id_compra = ${compra.id_compra}
+        WHERE id_compra = ?
         GROUP BY porcentaje_iva
-      `)
+      `, [compra.id_compra])
 
       let base4=0,iva4=0,recargo4=0,base10=0,iva10=0,recargo10=0,base21=0,iva21=0,recargo21=0,base0=0,iva0=0,recargo0=0,baseTotal=0
 
@@ -1215,9 +1235,9 @@ ipcMain.handle('obtener-detalle-compra', (event, idCompra) => {
     SELECT lc.*, p.nombre as nombre_producto
     FROM LINEAS_COMPRA lc
     LEFT JOIN PRODUCTOS p ON lc.id_producto = p.id_producto
-    WHERE lc.id_compra = ${idCompra}
+    WHERE lc.id_compra = ?
     ORDER BY lc.numero_linea ASC
-  `)
+  `, [idCompra])
   if (!result.length) return []
   const cols = result[0].columns
   return result[0].values.map(row => {
@@ -1367,13 +1387,13 @@ ipcMain.handle('toggle-cliente', (event, idCliente, nuevoEstado) => {
 
 ipcMain.handle('obtener-puntos-cliente', (event, idCliente) => {
   const db = getDB()
-  const result = db.exec(`SELECT COALESCE(SUM(puntos), 0) as saldo FROM MOVIMIENTOS_PUNTOS WHERE id_cliente = ${idCliente}`)
+  const result = db.exec(`SELECT COALESCE(SUM(puntos), 0) as saldo FROM MOVIMIENTOS_PUNTOS WHERE id_cliente = ?`, [idCliente])
   const saldo = result.length && result[0].values.length ? result[0].values[0][0] : 0
   const movimientosResult = db.exec(`
     SELECT id_movimiento, tipo, puntos, fecha, descripcion
-    FROM MOVIMIENTOS_PUNTOS WHERE id_cliente = ${idCliente}
+    FROM MOVIMIENTOS_PUNTOS WHERE id_cliente = ?
     ORDER BY fecha DESC, id_movimiento DESC
-  `)
+  `, [idCliente])
   const movimientos = []
   if (movimientosResult.length && movimientosResult[0].values.length) {
     const cols = movimientosResult[0].columns
@@ -1390,9 +1410,9 @@ ipcMain.handle('obtener-historial-cliente', (event, idCliente) => {
   const db = getDB()
   const result = db.exec(`
     SELECT v.id_venta, v.numero_documento, v.fecha, v.hora, v.tipo_documento, v.estado, v.total_venta
-    FROM VENTAS v WHERE v.id_cliente = ${idCliente}
+    FROM VENTAS v WHERE v.id_cliente = ?
     ORDER BY v.fecha DESC, v.id_venta DESC
-  `)
+  `, [idCliente])
   if (!result.length) return []
   const cols = result[0].columns
   return result[0].values.map(row => {
@@ -1441,9 +1461,9 @@ ipcMain.handle('importar-clientes-excel', async (event) => {
       const nombreFinal = nombre || telefono
       let existe
       if (telefono) {
-        existe = db.exec(`SELECT id_cliente FROM CLIENTES WHERE telefono = '${telefono.replace(/'/g,"''")}'`)
+        existe = db.exec(`SELECT id_cliente FROM CLIENTES WHERE telefono = ?`, [telefono])
       } else {
-        existe = db.exec(`SELECT id_cliente FROM CLIENTES WHERE nombre = '${nombreFinal.replace(/'/g,"''")}'`)
+        existe = db.exec(`SELECT id_cliente FROM CLIENTES WHERE nombre = ?`, [nombreFinal])
       }
       if (existe.length && existe[0].values.length) { omitidos++; return }
       const email = (fila['Email']||fila['email']||'').toString().trim()
@@ -1485,8 +1505,8 @@ ipcMain.handle('obtener-alertas-crm', () => {
     SELECT c.id_cliente, c.nombre, MAX(v.fecha) as ultima_compra
     FROM CLIENTES c JOIN VENTAS v ON v.id_cliente = c.id_cliente
     WHERE c.activo = 1 GROUP BY c.id_cliente
-    HAVING MAX(v.fecha) < '${fechaLimiteStr}' ORDER BY ultima_compra ASC
-  `)
+    HAVING MAX(v.fecha) < ? ORDER BY ultima_compra ASC
+  `, [fechaLimiteStr])
   const inactivos = []
   if (inactivosResult.length && inactivosResult[0].values.length) {
     inactivosResult[0].values.forEach(row => {
@@ -1530,7 +1550,7 @@ ipcMain.handle('probar-conexion-smtp', async () => {
 ipcMain.handle('enviar-email-cliente', async (event, idCliente, tipoPlantilla) => {
   try {
     const db = getDB()
-    const clienteResult = db.exec(`SELECT id_cliente, nombre, email FROM CLIENTES WHERE id_cliente = ${idCliente}`)
+    const clienteResult = db.exec(`SELECT id_cliente, nombre, email FROM CLIENTES WHERE id_cliente = ?`, [idCliente])
     if (!clienteResult.length || !clienteResult[0].values.length) {
       return { ok: false, mensaje: 'Cliente no encontrado' }
     }
@@ -1539,7 +1559,7 @@ ipcMain.handle('enviar-email-cliente', async (event, idCliente, tipoPlantilla) =
       nombre: clienteResult[0].values[0][1],
       email: clienteResult[0].values[0][2]
     }
-    const plantillaResult = db.exec(`SELECT asunto, cuerpo FROM PLANTILLAS_EMAIL WHERE tipo = '${tipoPlantilla}'`)
+    const plantillaResult = db.exec(`SELECT asunto, cuerpo FROM PLANTILLAS_EMAIL WHERE tipo = ?`, [tipoPlantilla])
     if (!plantillaResult.length || !plantillaResult[0].values.length) {
       return { ok: false, mensaje: 'Plantilla no encontrada' }
     }
@@ -1604,8 +1624,10 @@ ipcMain.handle('abrir-campanas', () => {
 ipcMain.handle('obtener-clientes-campana', (event, filtros) => {
   const db = getDB()
   let sql = `SELECT id_cliente, nombre, email, telefono, prefijo_telefono, fecha_nacimiento FROM CLIENTES WHERE activo = 1`
+  const params = []
   if (filtros.tipo === 'cumpleanos' && filtros.mes) {
-    sql += ` AND strftime('%m', fecha_nacimiento) = '${String(filtros.mes).padStart(2, '0')}'`
+    sql += ` AND strftime('%m', fecha_nacimiento) = ?`
+    params.push(String(filtros.mes).padStart(2, '0'))
   }
   if (filtros.tipo === 'inactivos') {
     const dias = filtros.dias || 90
@@ -1615,11 +1637,12 @@ ipcMain.handle('obtener-clientes-campana', (event, filtros) => {
     sql += ` AND id_cliente IN (
       SELECT c.id_cliente FROM CLIENTES c
       JOIN VENTAS v ON v.id_cliente = c.id_cliente
-      GROUP BY c.id_cliente HAVING MAX(v.fecha) < '${fechaLimiteStr}'
+      GROUP BY c.id_cliente HAVING MAX(v.fecha) < ?
     )`
+    params.push(fechaLimiteStr)
   }
   sql += ' ORDER BY nombre ASC'
-  const result = db.exec(sql)
+  const result = db.exec(sql, params)
   if (!result.length) return []
   const cols = result[0].columns
   return result[0].values.map(row => {

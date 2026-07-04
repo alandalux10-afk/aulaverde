@@ -6,9 +6,9 @@ function generarNumeroDocumento(tipo) {
   const prefijo = tipo === 'TICKET' ? 'T' : 'FS'
   const resultado = db.exec(`
     SELECT numero_documento FROM VENTAS
-    WHERE tipo_documento = '${tipo}'
+    WHERE tipo_documento = ?
     ORDER BY id_venta DESC LIMIT 1
-  `)
+  `, [tipo])
 
   let numero = 1
   if (resultado.length && resultado[0].values.length) {
@@ -155,7 +155,7 @@ function guardarVenta(lineas, formaPago, tipoDocumento, cliente, puntosCanjear) 
   // Saldo de puntos actualizado del cliente, para mostrar en el ticket
   let puntosSaldo = null
   if (idCliente) {
-    const saldoResult = db.exec(`SELECT COALESCE(SUM(puntos), 0) FROM MOVIMIENTOS_PUNTOS WHERE id_cliente = ${idCliente}`)
+    const saldoResult = db.exec(`SELECT COALESCE(SUM(puntos), 0) FROM MOVIMIENTOS_PUNTOS WHERE id_cliente = ?`, [idCliente])
     puntosSaldo = saldoResult.length && saldoResult[0].values.length ? saldoResult[0].values[0][0] : 0
   }
 
