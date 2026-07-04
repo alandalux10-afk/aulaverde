@@ -118,6 +118,17 @@ function crearTablas() {
   console.log('Tablas creadas correctamente')
 }
 
+// Comprueba si una columna ya existe en una tabla, consultando el esquema real
+// de SQLite en vez de intentar el ALTER TABLE y descartar cualquier error que
+// dé (que era el patrón anterior: un try/catch vacío oculta tanto el error
+// esperado de "columna duplicada" como cualquier otro problema real -
+// disco lleno, base de datos corrupta, etc. - sin que nadie se entere).
+function columnaExiste(tabla, columna) {
+  const resultado = db.exec(`PRAGMA table_info(${tabla})`)
+  if (!resultado.length) return false
+  return resultado[0].values.some(fila => fila[1].toLowerCase() === columna.toLowerCase())
+}
+
 function migrarTablas() {
   // Tablas del módulo de compras a proveedores
   // Se crean solo si no existen — seguro de ejecutar siempre
@@ -260,78 +271,78 @@ function migrarTablas() {
   )`)
 
   // Añadir columna recargo_equivalencia a PROVEEDORES si no existe
-  try {
+  if (!columnaExiste('PROVEEDORES', 'recargo_equivalencia')) {
     db.run(`ALTER TABLE PROVEEDORES ADD COLUMN recargo_equivalencia BOOLEAN NOT NULL DEFAULT 0`)
-  } catch (e) {}
+  }
 
   // Añadir columna api_key_anthropic si no existe todavía
-  try {
+  if (!columnaExiste('CONFIGURACION', 'api_key_anthropic')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN api_key_anthropic VARCHAR(255)`)
-  } catch (e) {}
+  }
 
   // Añadir columnas de fidelización a CONFIGURACION si no existen todavía (MVP v2.0 - Fase 2)
-  try {
+  if (!columnaExiste('CONFIGURACION', 'puntos_euros_por_punto')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN puntos_euros_por_punto DECIMAL(10,2) NOT NULL DEFAULT 10`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CONFIGURACION', 'puntos_valor_canje')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN puntos_valor_canje DECIMAL(10,2) NOT NULL DEFAULT 5`)
-  } catch (e) {}
+  }
 
   // Añadir columnas SMTP a CONFIGURACION si no existen todavía (MVP v2.0 - Fase 3)
-  try {
+  if (!columnaExiste('CONFIGURACION', 'smtp_host')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_host VARCHAR(255)`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CONFIGURACION', 'smtp_puerto')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_puerto INTEGER`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CONFIGURACION', 'smtp_usuario')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_usuario VARCHAR(255)`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CONFIGURACION', 'smtp_password')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_password VARCHAR(255)`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CONFIGURACION', 'smtp_email_remitente')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN smtp_email_remitente VARCHAR(255)`)
-  } catch (e) {}
+  }
 
   // Añadir columna prefijo_telefono a CLIENTES si no existe todavía (MVP v2.0 - Fase 4)
-  try {
+  if (!columnaExiste('CLIENTES', 'prefijo_telefono')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN prefijo_telefono VARCHAR(5) NOT NULL DEFAULT '+34'`)
-  } catch (e) {}
+  }
 
   // Añadir columna id_cliente a VENTAS si no existe todavía (MVP v2.0 - Fase 1)
-  try {
+  if (!columnaExiste('VENTAS', 'id_cliente')) {
     db.run(`ALTER TABLE VENTAS ADD COLUMN id_cliente INTEGER REFERENCES CLIENTES(id_cliente)`)
-  } catch (e) {}
+  }
 
   // Añadir columna ruta_descargas a CONFIGURACION si no existe todavía
-  try {
+  if (!columnaExiste('CONFIGURACION', 'ruta_descargas')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN ruta_descargas VARCHAR(500) DEFAULT 'C:\\AulaVerde\\descargas'`)
-  } catch (e) {}
+  }
 
   // ===== Consentimiento RGPD y marketing (cumplimiento legal) =====
-  try {
+  if (!columnaExiste('CLIENTES', 'consentimiento_rgpd')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN consentimiento_rgpd BOOLEAN NOT NULL DEFAULT 0`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CLIENTES', 'fecha_consentimiento_rgpd')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN fecha_consentimiento_rgpd DATE`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CLIENTES', 'consentimiento_email_marketing')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN consentimiento_email_marketing BOOLEAN NOT NULL DEFAULT 0`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CLIENTES', 'consentimiento_whatsapp_marketing')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN consentimiento_whatsapp_marketing BOOLEAN NOT NULL DEFAULT 0`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CLIENTES', 'metodo_consentimiento')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN metodo_consentimiento VARCHAR(20)`)
-  } catch (e) {}
-  try {
+  }
+  if (!columnaExiste('CLIENTES', 'pdf_consentimiento_path')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN pdf_consentimiento_path VARCHAR(500)`)
-  } catch (e) {}
+  }
 // Tipo de cliente: PARTICULAR o PROFESIONAL (cumplimiento RGPD - minimización de datos)
-  try {
+  if (!columnaExiste('CLIENTES', 'tipo_cliente')) {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN tipo_cliente VARCHAR(20) NOT NULL DEFAULT 'PARTICULAR'`)
-  } catch (e) {}
+  }
 
   // ===== Índices de rendimiento =====
   // El esquema original no tenía ningún índice más allá de las claves primarias.
