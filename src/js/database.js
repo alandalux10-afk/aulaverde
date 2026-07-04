@@ -332,6 +332,30 @@ function migrarTablas() {
   try {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN tipo_cliente VARCHAR(20) NOT NULL DEFAULT 'PARTICULAR'`)
   } catch (e) {}
+
+  // ===== Índices de rendimiento =====
+  // El esquema original no tenía ningún índice más allá de las claves primarias.
+  // Con pocos cientos de productos y ventas no se nota, pero a medida que crece
+  // el histórico las búsquedas y filtros más usados (buscador de productos,
+  // consultas por fecha, listados de compras) se van haciendo más lentos.
+  // CREATE INDEX IF NOT EXISTS es seguro de ejecutar en cada arranque, sin
+  // necesidad de try/catch: si el índice ya existe, SQLite simplemente no hace nada.
+  db.run(`CREATE INDEX IF NOT EXISTS idx_productos_codigo ON PRODUCTOS(codigo)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_productos_nombre ON PRODUCTOS(nombre)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_productos_activo ON PRODUCTOS(activo)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_ventas_fecha ON VENTAS(fecha)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_ventas_id_cliente ON VENTAS(id_cliente)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_lineas_venta_id_venta ON LINEAS_VENTA(id_venta)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_lineas_venta_codigo_producto ON LINEAS_VENTA(codigo_producto)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_clientes_nombre ON CLIENTES(nombre)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_clientes_telefono ON CLIENTES(telefono)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_compras_id_proveedor ON COMPRAS(id_proveedor)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_compras_fecha ON COMPRAS(fecha)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_lineas_compra_id_compra ON LINEAS_COMPRA(id_compra)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_proveedores_nombre ON PROVEEDORES(nombre)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_movimientos_puntos_id_cliente ON MOVIMIENTOS_PUNTOS(id_cliente)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_productos_proveedor_id_proveedor ON PRODUCTOS_PROVEEDOR(id_proveedor)`)
+
   guardarDB()
   console.log('Migración de tablas completada')
 }
