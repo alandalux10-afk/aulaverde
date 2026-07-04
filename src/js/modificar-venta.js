@@ -206,7 +206,7 @@ document.getElementById('btn-ed-aceptar').addEventListener('click', () => {
   renderizarLineas()
 })
 
-ipcRenderer.on('iniciar-carga', (event, id) => {
+ipcRenderer.on('iniciar-carga', (id) => {
   idVenta = id
   cargarVentaConId(id)
 })

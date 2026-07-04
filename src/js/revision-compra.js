@@ -10,7 +10,7 @@ let productosInternos = []
 let lineaParaCrearProducto = null
 
 window.addEventListener('DOMContentLoaded', () => {
-  ipcRenderer.on('iniciar-revision', (event, datos) => {
+  ipcRenderer.on('iniciar-revision', (datos) => {
     datosFactura = datos.datosFactura
     idProveedor = datos.idProveedor
     nombreProveedor = datos.nombreProveedor
