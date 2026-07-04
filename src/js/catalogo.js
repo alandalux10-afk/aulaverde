@@ -1,4 +1,7 @@
-const { ipcRenderer } = require('electron')
+// Nota de seguridad: antes se hacía "const { ipcRenderer } = require('electron')"
+// aquí. Ya no hace falta ni es posible: con nodeIntegration desactivado esta
+// ventana no tiene acceso a Node.js. El objeto "ipcRenderer" que se usa más
+// abajo lo proporciona ahora preload.js de forma controlada y segura.
 
 let productoSeleccionado = null
 let modoEdicion = false
@@ -39,7 +42,7 @@ async function cargarProductos() {
   document.getElementById('total-productos-cat').textContent = productos.length + ' productos'
 }
 
-function abrirModalNuevo() {
+async function abrirModalNuevo() {
   modoEdicion = false
   document.getElementById('modal-producto-titulo').textContent = 'Nuevo producto'
   document.getElementById('prod-codigo').value = ''
@@ -50,6 +53,10 @@ function abrirModalNuevo() {
   document.getElementById('prod-precio-coste').value = ''
   document.getElementById('prod-iva').value = '2'
   document.getElementById('modal-producto').style.display = 'block'
+  // Código correlativo automático (AV0001, AV0002...). Se rellena solo, pero
+  // se puede editar a mano si hiciera falta un código distinto.
+  const siguienteCodigo = await ipcRenderer.invoke('obtener-siguiente-codigo-catalogo')
+  document.getElementById('prod-codigo').value = siguienteCodigo
 }
 
 function abrirModalEditar() {
@@ -88,6 +95,13 @@ document.getElementById('btn-prod-guardar').addEventListener('click', async () =
 
   if (!datos.codigo || !datos.nombre) {
     alert('El código y el nombre son obligatorios')
+    // En Electron/Windows, tras cerrar un aviso nativo (alert) la ventana
+    // puede quedarse sin el foco de teclado, dando la sensación de que los
+    // campos "no dejan escribir". Se fuerza el foco de vuelta al campo que
+    // falta por rellenar para que se pueda seguir escribiendo sin más clics.
+    const campoAFocar = !datos.codigo ? 'prod-codigo' : 'prod-nombre'
+    window.focus()
+    document.getElementById(campoAFocar).focus()
     return
   }
 

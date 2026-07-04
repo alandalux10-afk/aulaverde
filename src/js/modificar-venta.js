@@ -1,5 +1,7 @@
-const { ipcRenderer } = require('electron')
-
+// Nota de seguridad: antes se hacía "const { ipcRenderer } = require('electron')"
+// aquí. Ya no hace falta ni es posible: con nodeIntegration desactivado esta
+// ventana no tiene acceso a Node.js. El objeto "ipcRenderer" que se usa más
+// abajo lo proporciona ahora preload.js de forma controlada y segura.
 let lineas = []
 let lineaSeleccionada = null
 let idVenta = null

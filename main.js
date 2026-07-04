@@ -28,8 +28,9 @@ function createWindow() {
     minHeight: 600,
     title: 'Aula Verde TPV',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/tpv.html')
@@ -136,8 +137,9 @@ ipcMain.handle('abrir-consultas', () => {
     height: 600,
     title: 'Consultas - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/consultas.html')
@@ -171,8 +173,9 @@ ipcMain.handle('abrir-resumen', () => {
     height: 600,
     title: 'Resumen - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/resumen.html')
@@ -339,8 +342,9 @@ ipcMain.handle('abrir-configuracion', () => {
     height: 700,
     title: 'Configuración - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/configuracion.html')
@@ -353,8 +357,9 @@ ipcMain.handle('abrir-modificar-venta', (event, idVenta) => {
     height: 650,
     title: 'Modificar venta - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/modificar-venta.html')
@@ -532,8 +537,9 @@ ipcMain.handle('abrir-catalogo', () => {
     height: 700,
     title: 'Catálogo de productos - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/catalogo.html')
@@ -547,8 +553,9 @@ ipcMain.handle('abrir-nueva-venta', () => {
     minHeight: 600,
     title: 'Aula Verde TPV',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/tpv.html')
@@ -807,8 +814,9 @@ ipcMain.handle('abrir-nueva-compra', () => {
     height: 620,
     title: 'Nueva compra - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/nueva-compra.html')
@@ -919,8 +927,9 @@ ipcMain.handle('abrir-revision-compra', (event, datosFactura, idProveedor, nombr
     height: 750,
     title: 'Revisión de compra - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/revision-compra.html')
@@ -943,6 +952,28 @@ ipcMain.handle('obtener-siguiente-codigo-producto', () => {
     return siguiente
   } catch (e) {
     return '00001'
+  }
+})
+
+// Siguiente código para el catálogo general, respetando el formato real usado
+// desde la importación inicial (AV0001...AV0715): prefijo "AV" + 4 dígitos.
+// Es un handler distinto de obtener-siguiente-codigo-producto (usado solo al
+// crear un producto desde la revisión de una factura de proveedor) porque
+// ese otro busca códigos puramente numéricos y no vería estos códigos "AV...".
+ipcMain.handle('obtener-siguiente-codigo-catalogo', () => {
+  try {
+    const db = getDB()
+    const result = db.exec("SELECT codigo FROM PRODUCTOS WHERE codigo LIKE 'AV%'")
+    let maximo = 0
+    if (result.length) {
+      result[0].values.forEach(row => {
+        const numero = parseInt(String(row[0]).replace(/^AV/i, ''), 10)
+        if (!isNaN(numero) && numero > maximo) maximo = numero
+      })
+    }
+    return 'AV' + String(maximo + 1).padStart(4, '0')
+  } catch (e) {
+    return 'AV0001'
   }
 })
 
@@ -1036,8 +1067,9 @@ ipcMain.handle('abrir-historico-compras', () => {
     height: 700,
     title: 'Histórico de compras - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/historico-compras.html')
@@ -1255,8 +1287,9 @@ ipcMain.handle('abrir-proveedores', () => {
     height: 650,
     title: 'Proveedores - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/proveedores.html')
@@ -1324,8 +1357,9 @@ ipcMain.handle('abrir-clientes', () => {
     height: 700,
     title: 'Clientes - Aula Verde',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
   win.loadFile('src/html/clientes.html')
@@ -1616,7 +1650,7 @@ ipcMain.handle('abrir-campanas', () => {
     width: 900,
     height: 700,
     title: 'Campañas - Aula Verde',
-    webPreferences: { nodeIntegration: true, contextIsolation: false }
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), nodeIntegration: false, contextIsolation: true }
   })
   win.loadFile('src/html/campanas.html')
 })
