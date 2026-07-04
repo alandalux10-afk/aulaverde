@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer')
-const { getDB } = require('./database')
+const { getDB, descifrar } = require('./database')
 
 // Construye el transportador de nodemailer a partir de la configuración SMTP guardada
 function obtenerTransportador() {
@@ -10,7 +10,8 @@ function obtenerTransportador() {
     return null
   }
 
-  const [host, puerto, usuario, password] = result[0].values[0]
+  const [host, puerto, usuario, passwordCifrada] = result[0].values[0]
+  const password = descifrar(passwordCifrada)
 
   if (!host || !puerto || !usuario || !password) {
     return null

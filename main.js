@@ -284,18 +284,21 @@ ipcMain.handle('reimprimir-ticket', async (event, idVenta) => {
 
 ipcMain.handle('obtener-configuracion', () => {
   const db = getDB()
+  const { descifrar } = require('./src/js/database')
   const result = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
   if (!result.length || !result[0].values.length) return null
   const cols = result[0].columns
   const cfg = {}
   result[0].values[0].forEach((val, i) => cfg[cols[i]] = val)
+  cfg.api_key_anthropic = descifrar(cfg.api_key_anthropic)
+  cfg.smtp_password = descifrar(cfg.smtp_password)
   return cfg
 })
 
 ipcMain.handle('guardar-configuracion', (event, datos) => {
   try {
     const db = getDB()
-    const { guardarDB } = require('./src/js/database')
+    const { guardarDB, cifrar } = require('./src/js/database')
     db.run(
       'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=?, api_key_anthropic=?, puntos_euros_por_punto=?, puntos_valor_canje=?, smtp_host=?, smtp_puerto=?, smtp_usuario=?, smtp_password=?, smtp_email_remitente=?, ruta_descargas=? WHERE id_configuracion=1',
       [
@@ -307,13 +310,13 @@ ipcMain.handle('guardar-configuracion', (event, datos) => {
         datos.email,
         datos.impresora_ticket,
         datos.impresora_factura,
-        datos.api_key_anthropic,
+        cifrar(datos.api_key_anthropic),
         datos.puntos_euros_por_punto,
         datos.puntos_valor_canje,
         datos.smtp_host,
         datos.smtp_puerto,
         datos.smtp_usuario,
-        datos.smtp_password,
+        cifrar(datos.smtp_password),
         datos.smtp_email_remitente,
         datos.ruta_descargas
       ]
@@ -828,11 +831,12 @@ ipcMain.handle('extraer-factura-pdf', async (event, datos) => {
     const pathMod = require('path')
 
     const db = getDB()
+    const { descifrar } = require('./src/js/database')
     const cfgResult = db.exec('SELECT api_key_anthropic FROM CONFIGURACION WHERE id_configuracion = 1')
     if (!cfgResult.length || !cfgResult[0].values[0][0]) {
       return { ok: false, mensaje: 'No hay clave API configurada. Ve a Configuración y añade tu clave API de Anthropic.' }
     }
-    const apiKey = cfgResult[0].values[0][0]
+    const apiKey = descifrar(cfgResult[0].values[0][0])
 
     const ahora = new Date()
     const sufijo = `${ahora.getFullYear()}${String(ahora.getMonth()+1).padStart(2,'0')}${String(ahora.getDate()).padStart(2,'0')}_${Date.now()}`
@@ -1866,3 +1870,4 @@ ipcMain.handle('abrir-documento-consentimiento', async (event, rutaPdf) => {
     return { ok: false, mensaje: e.message }
   }
 })
+

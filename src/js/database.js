@@ -1,10 +1,58 @@
 const fs = require('fs')
 const path = require('path')
 const initSqlJs = require('sql.js')
+const { safeStorage } = require('electron')
 
 const DB_PATH = path.join(__dirname, '../../data/aulaverde.db')
 
 let db = null
+
+// ─── Cifrado de credenciales sensibles (clave API, contraseña SMTP) ──────────
+// Usa safeStorage, el módulo nativo de Electron pensado exactamente para esto:
+// cifra usando el almacén de credenciales del propio sistema operativo
+// (DPAPI en Windows, Keychain en macOS, libsecret en Linux). Cada equipo cifra
+// con su propia clave del sistema — nadie más, ni siquiera copiando el
+// archivo de la base de datos a otro ordenador, puede leer el valor real.
+// El prefijo "ENC:" distingue un valor ya cifrado de uno antiguo en texto
+// plano (para no romper bases de datos ya en uso al actualizar la app).
+function cifrar(texto) {
+  if (!texto) return texto
+  if (typeof texto === 'string' && texto.startsWith('ENC:')) return texto
+  if (!safeStorage.isEncryptionAvailable()) return texto
+  const buffer = safeStorage.encryptString(texto)
+  return 'ENC:' + buffer.toString('base64')
+}
+
+function descifrar(valor) {
+  if (!valor) return valor
+  if (typeof valor === 'string' && valor.startsWith('ENC:')) {
+    if (!safeStorage.isEncryptionAvailable()) return ''
+    try {
+      const buffer = Buffer.from(valor.slice(4), 'base64')
+      return safeStorage.decryptString(buffer)
+    } catch (e) {
+      return ''
+    }
+  }
+  // Valor de una base de datos anterior a este cambio, todavía sin cifrar
+  return valor
+}
+
+// Migración de un solo uso: si hay credenciales de una versión anterior
+// guardadas en texto plano, se cifran ahora y se guardan ya protegidas.
+function migrarCredencialesACifrado() {
+  const result = db.exec('SELECT api_key_anthropic, smtp_password FROM CONFIGURACION WHERE id_configuracion = 1')
+  if (!result.length || !result[0].values.length) return
+  const [apiKey, smtpPassword] = result[0].values[0]
+  const necesitaApiKey = apiKey && !String(apiKey).startsWith('ENC:')
+  const necesitaSmtp = smtpPassword && !String(smtpPassword).startsWith('ENC:')
+  if (!necesitaApiKey && !necesitaSmtp) return
+  db.run(
+    'UPDATE CONFIGURACION SET api_key_anthropic = ?, smtp_password = ? WHERE id_configuracion = 1',
+    [necesitaApiKey ? cifrar(apiKey) : apiKey, necesitaSmtp ? cifrar(smtpPassword) : smtpPassword]
+  )
+  console.log('Credenciales existentes cifradas correctamente')
+}
 
 async function inicializarDB() {
   const SQL = await initSqlJs()
@@ -369,6 +417,9 @@ function migrarTablas() {
 
   guardarDB()
   console.log('Migración de tablas completada')
+
+  migrarCredencialesACifrado()
+  guardarDB()
 }
 
 function insertarDatosIniciales() {
@@ -398,4 +449,4 @@ function getDB() {
   return db
 }
 
-module.exports = { inicializarDB, guardarDB, getDB }
+module.exports = { inicializarDB, guardarDB, getDB, cifrar, descifrar }
