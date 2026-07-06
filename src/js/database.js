@@ -443,6 +443,28 @@ function migrarTablas() {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN tipo_cliente VARCHAR(20) NOT NULL DEFAULT 'PARTICULAR'`)
   }
 
+  // ===== Contador de numeración de documentos (tickets y facturas) =====
+  // Antes, el siguiente número se calculaba leyendo la ÚLTIMA venta guardada
+  // y sumando 1. Eso tiene un problema real: si esa venta se borra después
+  // (botón "Eliminar" en Consultas), el siguiente número generado repite el
+  // de la venta borrada — pudiendo coincidir con un ticket que el cliente
+  // ya se llevó impreso o por email. Una tabla de contador dedicada, que
+  // solo avanza y nunca depende de qué filas sigan existiendo en VENTAS,
+  // evita esto por completo.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS CONTADORES_DOCUMENTOS (
+      tipo_documento VARCHAR(20) PRIMARY KEY,
+      ultimo_numero INTEGER NOT NULL DEFAULT 0
+    )
+  `)
+  // Nota: la siembra del contador para cada tipo de documento ya NO se hace
+  // aquí con tipos fijos ("TICKET", "FS"...) — eso fue justo el origen de un
+  // bug real: el valor real usado en toda la aplicación para las facturas es
+  // "FACTURA_SIMPLIFICADA", no "FS", así que esa fila nunca se creaba y el
+  // contador de facturas quedaba roto. Ahora se siembra sola, la primera vez
+  // que se pide un número para un tipo concreto, en siguienteNumeroDocumento()
+  // más abajo — así funciona sea cual sea el texto exacto que use cada tipo.
+
   // ===== Índices de rendimiento =====
   // El esquema original no tenía ningún índice más allá de las claves primarias.
   // Con pocos cientos de productos y ventas no se nota, pero a medida que crece
@@ -473,6 +495,39 @@ function migrarTablas() {
   guardarDB()
 }
 
+// Solo actúa si el tipo de documento no tiene fila todavía en el contador
+// (primera vez que se ejecuta esta migración). Calcula el número más alto
+// que se haya usado JAMÁS para ese tipo, repasando TODAS las ventas
+// existentes (no solo la última), para no arriesgarse a repetir un número
+// ya usado si alguna venta intermedia se hubiera borrado antes de esta
+// actualización.
+function sembrarContadorDocumentos(tipo) {
+  const yaExiste = db.exec('SELECT 1 FROM CONTADORES_DOCUMENTOS WHERE tipo_documento = ?', [tipo])
+  if (yaExiste.length) return
+
+  const result = db.exec('SELECT numero_documento FROM VENTAS WHERE tipo_documento = ?', [tipo])
+  let maximo = 0
+  if (result.length) {
+    result[0].values.forEach(row => {
+      const partes = String(row[0]).split('-')
+      const numero = parseInt(partes[1], 10)
+      if (!isNaN(numero) && numero > maximo) maximo = numero
+    })
+  }
+  db.run('INSERT INTO CONTADORES_DOCUMENTOS (tipo_documento, ultimo_numero) VALUES (?, ?)', [tipo, maximo])
+}
+
+// Devuelve el siguiente número correlativo para un tipo de documento,
+// incrementando el contador dedicado de forma atómica. A diferencia del
+// método antiguo, este número NUNCA retrocede ni se repite, pase lo que
+// pase con las filas de VENTAS (incluidas eliminaciones).
+function siguienteNumeroDocumento(tipo) {
+  sembrarContadorDocumentos(tipo)
+  db.run('UPDATE CONTADORES_DOCUMENTOS SET ultimo_numero = ultimo_numero + 1 WHERE tipo_documento = ?', [tipo])
+  const result = db.exec('SELECT ultimo_numero FROM CONTADORES_DOCUMENTOS WHERE tipo_documento = ?', [tipo])
+  return result[0].values[0][0]
+}
+
 function insertarDatosIniciales() {
   db.run(`INSERT INTO TIPOS_IVA (nombre, porcentaje, activo) VALUES ('Superreducido', 4.00, 1)`)
   db.run(`INSERT INTO TIPOS_IVA (nombre, porcentaje, activo) VALUES ('Reducido', 10.00, 1)`)
@@ -500,4 +555,4 @@ function getDB() {
   return db
 }
 
-module.exports = { inicializarDB, guardarDB, getDB, cifrar, descifrar }
+module.exports = { inicializarDB, guardarDB, getDB, cifrar, descifrar, siguienteNumeroDocumento }

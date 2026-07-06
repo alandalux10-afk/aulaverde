@@ -1,22 +1,13 @@
-const { getDB, guardarDB } = require('./database')
+const { getDB, guardarDB, siguienteNumeroDocumento } = require('./database')
 
-// Generar número de documento automático
+// Generar número de documento automático.
+// Antes se derivaba de la última venta guardada (ORDER BY id_venta DESC
+// LIMIT 1), lo que podía repetir un número si esa venta se borraba después.
+// Ahora usa un contador dedicado que solo avanza, sin depender de qué filas
+// sigan existiendo en VENTAS.
 function generarNumeroDocumento(tipo) {
-  const db = getDB()
   const prefijo = tipo === 'TICKET' ? 'T' : 'FS'
-  const resultado = db.exec(`
-    SELECT numero_documento FROM VENTAS
-    WHERE tipo_documento = ?
-    ORDER BY id_venta DESC LIMIT 1
-  `, [tipo])
-
-  let numero = 1
-  if (resultado.length && resultado[0].values.length) {
-    const ultimo = resultado[0].values[0][0]
-    const partes = ultimo.split('-')
-    numero = parseInt(partes[1]) + 1
-  }
-
+  const numero = siguienteNumeroDocumento(tipo)
   return `${prefijo}-${String(numero).padStart(4, '0')}`
 }
 // Guardar venta completa en la base de datos
