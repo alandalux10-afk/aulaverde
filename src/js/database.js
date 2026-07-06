@@ -3,7 +3,26 @@ const path = require('path')
 const initSqlJs = require('sql.js')
 const { safeStorage, app } = require('electron')
 
-const DB_PATH = path.join(__dirname, '../../data/aulaverde.db')
+// La ruta de la base de datos se calcula en tiempo de ejecución (no como
+// constante fija) porque depende de si la app está empaquetada o no:
+//
+// - En desarrollo (npm start desde el código fuente): sigue exactamente
+//   donde estaba, junto al proyecto, para no cambiar nada de tu forma
+//   de trabajar actual.
+// - Empaquetada (instalada en el ordenador de un cliente): los archivos
+//   de la aplicación instalada son de solo lectura (van dentro de un
+//   paquete .asar), así que escribir ahí fallaría en cuanto se intentara
+//   guardar la primera venta. En su lugar se usa la carpeta de datos de
+//   usuario del sistema operativo (app.getPath('userData')), que siempre
+//   es escribible y es el sitio estándar de Electron para esto.
+let DB_PATH = null
+
+function calcularRutaBD() {
+  if (app.isPackaged) {
+    return path.join(app.getPath('userData'), 'data', 'aulaverde.db')
+  }
+  return path.join(__dirname, '../../data/aulaverde.db')
+}
 
 let db = null
 
@@ -84,6 +103,10 @@ function configurarRutasPorDefecto() {
 async function inicializarDB() {
   const SQL = await initSqlJs()
   let esInstalacionNueva = false
+
+  DB_PATH = calcularRutaBD()
+  const carpetaBD = path.dirname(DB_PATH)
+  if (!fs.existsSync(carpetaBD)) fs.mkdirSync(carpetaBD, { recursive: true })
 
   if (fs.existsSync(DB_PATH)) {
     const fileBuffer = fs.readFileSync(DB_PATH)
@@ -555,4 +578,16 @@ function getDB() {
   return db
 }
 
-module.exports = { inicializarDB, guardarDB, getDB, cifrar, descifrar, siguienteNumeroDocumento }
+// Para que main.js (backups, archivos temporales) use siempre la misma ruta
+// real que la propia base de datos, en vez de calcular la suya por separado
+// asumiendo que está "junto al código" — algo que deja de ser cierto en una
+// instalación empaquetada.
+function obtenerRutaBD() {
+  return DB_PATH
+}
+
+function obtenerCarpetaDatos() {
+  return path.dirname(DB_PATH)
+}
+
+module.exports = { inicializarDB, guardarDB, getDB, cifrar, descifrar, siguienteNumeroDocumento, obtenerRutaBD, obtenerCarpetaDatos }

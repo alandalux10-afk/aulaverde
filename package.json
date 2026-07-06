@@ -4,14 +4,17 @@
   "description": "TPV Tienda Ecológica Aula Verde",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "keywords": [],
-  "author": "",
+  "author": "Aula Verde",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "electron": "^33.4.11"
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
   },
   "dependencies": {
     "node-thermal-printer": "^4.6.0",
@@ -19,5 +22,37 @@
     "pdf-to-printer": "^5.8.0",
     "sql.js": "^1.14.1",
     "xlsx": "^0.18.5"
+  },
+  "build": {
+    "appId": "es.aulaverde.tpv",
+    "productName": "Aula Verde TPV",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!data/**",
+      "!descargas/**",
+      "!dist/**",
+      "!*.md",
+      "!.gitignore",
+      "!.git/**"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aula Verde TPV"
+    }
   }
 }

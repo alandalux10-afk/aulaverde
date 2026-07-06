@@ -51,12 +51,13 @@ function createWindow() {
       if (response === 0) {
         const fs = require('fs')
         const pathMod = require('path')
+        const { obtenerRutaBD } = require('./src/js/database')
         const ahora = new Date()
         const año = ahora.getFullYear()
         const mes = String(ahora.getMonth() + 1).padStart(2, '0')
         const dia = String(ahora.getDate()).padStart(2, '0')
         const sufijo = `${año}${mes}${dia}`
-       const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
+        const origen = obtenerRutaBD()
         const dbTmp = getDB()
         const cfgTmp = dbTmp.exec('SELECT ruta_backup_bd FROM CONFIGURACION WHERE id_configuracion = 1')
         const carpetaDestino = (cfgTmp.length && cfgTmp[0].values[0][0]) || 'G:\\Mi unidad\\AulaVerde Backups'
@@ -607,7 +608,8 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
     }
     const fs = require('fs')
     const pathMod = require('path')
-    const tmpPath = pathMod.join(__dirname, 'data/vista_previa_tmp.html')
+    const { obtenerCarpetaDatos } = require('./src/js/database')
+    const tmpPath = pathMod.join(obtenerCarpetaDatos(), 'vista_previa_tmp.html')
     fs.writeFileSync(tmpPath, html)
     const ancho = tipoDocumento === 'FACTURA_SIMPLIFICADA' ? 794 : 420
     const win = new BrowserWindow({
@@ -638,12 +640,13 @@ ipcMain.handle('hacer-backup', () => {
   try {
     const fs = require('fs')
     const pathMod = require('path')
+    const { obtenerRutaBD } = require('./src/js/database')
     const ahora = new Date()
     const año = ahora.getFullYear()
     const mes = String(ahora.getMonth() + 1).padStart(2, '0')
     const dia = String(ahora.getDate()).padStart(2, '0')
     const sufijo = `${año}${mes}${dia}`
-    const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
+    const origen = obtenerRutaBD()
     const db = getDB()
     const cfgResult = db.exec('SELECT ruta_backup_bd FROM CONFIGURACION WHERE id_configuracion = 1')
     const carpetaDestino = (cfgResult.length && cfgResult[0].values[0][0]) || 'G:\\Mi unidad\\AulaVerde Backups'
