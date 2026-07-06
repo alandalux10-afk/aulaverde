@@ -56,8 +56,10 @@ function createWindow() {
         const mes = String(ahora.getMonth() + 1).padStart(2, '0')
         const dia = String(ahora.getDate()).padStart(2, '0')
         const sufijo = `${año}${mes}${dia}`
-        const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
-        const carpetaDestino = 'G:\\Mi unidad\\AulaVerde Backups'
+       const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
+        const dbTmp = getDB()
+        const cfgTmp = dbTmp.exec('SELECT ruta_backup_bd FROM CONFIGURACION WHERE id_configuracion = 1')
+        const carpetaDestino = (cfgTmp.length && cfgTmp[0].values[0][0]) || 'G:\\Mi unidad\\AulaVerde Backups'
         const destino = pathMod.join(carpetaDestino, `aulaverde_${sufijo}.db`)
         try {
           if (!fs.existsSync(carpetaDestino)) {
@@ -300,7 +302,7 @@ ipcMain.handle('guardar-configuracion', (event, datos) => {
     const db = getDB()
     const { guardarDB, cifrar } = require('./src/js/database')
     db.run(
-      'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=?, api_key_anthropic=?, puntos_euros_por_punto=?, puntos_valor_canje=?, smtp_host=?, smtp_puerto=?, smtp_usuario=?, smtp_password=?, smtp_email_remitente=?, ruta_descargas=? WHERE id_configuracion=1',
+      'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=?, api_key_anthropic=?, puntos_euros_por_punto=?, puntos_valor_canje=?, smtp_host=?, smtp_puerto=?, smtp_usuario=?, smtp_password=?, smtp_email_remitente=?, ruta_descargas=?, ruta_backup_bd=?, ruta_backup_facturas=? WHERE id_configuracion=1',
       [
         datos.nombre_tienda,
         datos.razon_social,
@@ -318,7 +320,9 @@ ipcMain.handle('guardar-configuracion', (event, datos) => {
         datos.smtp_usuario,
         cifrar(datos.smtp_password),
         datos.smtp_email_remitente,
-        datos.ruta_descargas
+        datos.ruta_descargas,
+        datos.ruta_backup_bd,
+        datos.ruta_backup_facturas
       ]
     )
     guardarDB()
@@ -640,7 +644,9 @@ ipcMain.handle('hacer-backup', () => {
     const dia = String(ahora.getDate()).padStart(2, '0')
     const sufijo = `${año}${mes}${dia}`
     const origen = pathMod.join(__dirname, 'data', 'aulaverde.db')
-    const carpetaDestino = 'G:\\Mi unidad\\AulaVerde Backups'
+    const db = getDB()
+    const cfgResult = db.exec('SELECT ruta_backup_bd FROM CONFIGURACION WHERE id_configuracion = 1')
+    const carpetaDestino = (cfgResult.length && cfgResult[0].values[0][0]) || 'G:\\Mi unidad\\AulaVerde Backups'
     const nombreArchivo = `aulaverde_${sufijo}.db`
     const destino = pathMod.join(carpetaDestino, nombreArchivo)
     if (!fs.existsSync(carpetaDestino)) {
@@ -842,7 +848,8 @@ ipcMain.handle('extraer-factura-pdf', async (event, datos) => {
     const sufijo = `${ahora.getFullYear()}${String(ahora.getMonth()+1).padStart(2,'0')}${String(ahora.getDate()).padStart(2,'0')}_${Date.now()}`
     const nombreArchivo = `factura_${sufijo}.pdf`
     const carpetaLocal = getRutaDescargas()
-    const carpetaDrive = 'G:\\Mi unidad\\AulaVerde Facturas'
+    const cfgFacturas = db.exec('SELECT ruta_backup_facturas FROM CONFIGURACION WHERE id_configuracion = 1')
+    const carpetaDrive = (cfgFacturas.length && cfgFacturas[0].values[0][0]) || 'G:\\Mi unidad\\AulaVerde Facturas'
     const rutaLocal = pathMod.join(carpetaLocal, nombreArchivo)
 
     const bufferPdf = Buffer.from(datos.base64, 'base64')

@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const initSqlJs = require('sql.js')
-const { safeStorage } = require('electron')
+const { safeStorage, app } = require('electron')
 
 const DB_PATH = path.join(__dirname, '../../data/aulaverde.db')
 
@@ -54,8 +54,36 @@ function migrarCredencialesACifrado() {
   console.log('Credenciales existentes cifradas correctamente')
 }
 
+// Calcula rutas de carpeta razonables para CUALQUIER sistema operativo
+// (Windows, macOS, Linux), usando la carpeta de Documentos real del usuario
+// que ha iniciado sesión en ese equipo — en vez de asumir una unidad C: o G:
+// concretas, que solo existen tal cual en el ordenador donde se escribió
+// originalmente el código. Se usa exclusivamente para instalaciones nuevas
+// (ver más abajo); las ya existentes conservan su ruta actual sin cambios.
+function calcularRutasPorDefecto() {
+  const base = path.join(app.getPath('documents'), 'AulaVerde')
+  return {
+    ruta_descargas: path.join(base, 'descargas'),
+    ruta_backup_bd: path.join(base, 'Backups'),
+    ruta_backup_facturas: path.join(base, 'Facturas')
+  }
+}
+
+// Se llama una sola vez, solo la primerísima vez que se crea la base de datos
+// (instalación nueva en un ordenador nuevo, incluido el de un futuro cliente).
+// No se ejecuta nunca sobre una base de datos ya existente.
+function configurarRutasPorDefecto() {
+  const rutas = calcularRutasPorDefecto()
+  db.run(
+    'UPDATE CONFIGURACION SET ruta_descargas = ?, ruta_backup_bd = ?, ruta_backup_facturas = ? WHERE id_configuracion = 1',
+    [rutas.ruta_descargas, rutas.ruta_backup_bd, rutas.ruta_backup_facturas]
+  )
+  console.log('Rutas de carpeta configuradas automáticamente para esta instalación')
+}
+
 async function inicializarDB() {
   const SQL = await initSqlJs()
+  let esInstalacionNueva = false
 
   if (fs.existsSync(DB_PATH)) {
     const fileBuffer = fs.readFileSync(DB_PATH)
@@ -66,11 +94,21 @@ async function inicializarDB() {
     crearTablas()
     insertarDatosIniciales()
     guardarDB()
+    esInstalacionNueva = true
     console.log('Base de datos creada correctamente')
   }
 
   // Se ejecuta siempre: añade tablas nuevas si no existen
   migrarTablas()
+
+  // Solo la primera vez que se crea la base de datos: fija rutas de carpeta
+  // sensatas para este ordenador en concreto. Se hace después de migrarTablas()
+  // porque las columnas ruta_descargas/ruta_backup_bd/ruta_backup_facturas
+  // se crean ahí.
+  if (esInstalacionNueva) {
+    configurarRutasPorDefecto()
+    guardarDB()
+  }
 
   return db
 }
@@ -366,6 +404,19 @@ function migrarTablas() {
   // Añadir columna ruta_descargas a CONFIGURACION si no existe todavía
   if (!columnaExiste('CONFIGURACION', 'ruta_descargas')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN ruta_descargas VARCHAR(500) DEFAULT 'C:\\AulaVerde\\descargas'`)
+  }
+
+  // Rutas de copia de seguridad configurables (antes hardcodeadas en el código,
+  // asumiendo que Google Drive siempre está montado como unidad G: — algo que
+  // solo es cierto en este ordenador, no en el de un cliente nuevo).
+  // El valor por defecto aquí es el mismo que ya se usaba hasta ahora, para no
+  // cambiar nada en las instalaciones existentes; las instalaciones nuevas
+  // reciben una ruta multiplataforma calculada más abajo, en configurarRutasPorDefecto().
+  if (!columnaExiste('CONFIGURACION', 'ruta_backup_bd')) {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN ruta_backup_bd VARCHAR(500) DEFAULT 'G:\\Mi unidad\\AulaVerde Backups'`)
+  }
+  if (!columnaExiste('CONFIGURACION', 'ruta_backup_facturas')) {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN ruta_backup_facturas VARCHAR(500) DEFAULT 'G:\\Mi unidad\\AulaVerde Facturas'`)
   }
 
   // ===== Consentimiento RGPD y marketing (cumplimiento legal) =====

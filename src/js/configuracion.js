@@ -22,6 +22,8 @@ async function cargarConfiguracion() {
     document.getElementById('smtp_password').value = cfg.smtp_password || ''
     document.getElementById('smtp_email_remitente').value = cfg.smtp_email_remitente || ''
     document.getElementById('ruta_descargas').value = cfg.ruta_descargas || 'C:\\AulaVerde\\descargas'
+    document.getElementById('ruta_backup_bd').value = cfg.ruta_backup_bd || ''
+    document.getElementById('ruta_backup_facturas').value = cfg.ruta_backup_facturas || ''
   }
 }
 
@@ -43,7 +45,9 @@ function recogerDatos() {
     smtp_usuario: document.getElementById('smtp_usuario').value,
     smtp_password: document.getElementById('smtp_password').value,
     smtp_email_remitente: document.getElementById('smtp_email_remitente').value,
-    ruta_descargas: document.getElementById('ruta_descargas').value || 'C:\\AulaVerde\\descargas'
+    ruta_descargas: document.getElementById('ruta_descargas').value || 'C:\\AulaVerde\\descargas',
+    ruta_backup_bd: document.getElementById('ruta_backup_bd').value,
+    ruta_backup_facturas: document.getElementById('ruta_backup_facturas').value
   }
 }
 
@@ -60,6 +64,20 @@ document.getElementById('btn-seleccionar-carpeta').addEventListener('click', asy
   const carpeta = await ipcRenderer.invoke('seleccionar-carpeta-descargas')
   if (carpeta) {
     document.getElementById('ruta_descargas').value = carpeta
+  }
+})
+
+document.getElementById('btn-seleccionar-carpeta-backup-bd').addEventListener('click', async () => {
+  const carpeta = await ipcRenderer.invoke('seleccionar-carpeta-descargas')
+  if (carpeta) {
+    document.getElementById('ruta_backup_bd').value = carpeta
+  }
+})
+
+document.getElementById('btn-seleccionar-carpeta-backup-facturas').addEventListener('click', async () => {
+  const carpeta = await ipcRenderer.invoke('seleccionar-carpeta-descargas')
+  if (carpeta) {
+    document.getElementById('ruta_backup_facturas').value = carpeta
   }
 })
 

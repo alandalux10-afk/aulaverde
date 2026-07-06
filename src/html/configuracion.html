@@ -103,6 +103,24 @@
       <small>Aquí se guardarán todos los archivos exportados: Excel, CSV, PDF de facturas, etc.</small>
     </div>
 
+    <div class="grupo">
+      <label>☁️ Carpeta de copia de seguridad de la base de datos</label>
+      <div class="fila-carpeta">
+        <input type="text" id="ruta_backup_bd" placeholder="Ej: tu carpeta de Google Drive">
+        <button id="btn-seleccionar-carpeta-backup-bd" type="button">📂 Seleccionar</button>
+      </div>
+      <small>Aquí se guardará la copia de seguridad al cerrar la aplicación o al pulsar "Copia de seguridad".</small>
+    </div>
+
+    <div class="grupo">
+      <label>📄 Carpeta de copia de seguridad de facturas de proveedor</label>
+      <div class="fila-carpeta">
+        <input type="text" id="ruta_backup_facturas" placeholder="Ej: tu carpeta de Google Drive">
+        <button id="btn-seleccionar-carpeta-backup-facturas" type="button">📂 Seleccionar</button>
+      </div>
+      <small>Copia adicional de cada factura de proveedor procesada, por si acaso.</small>
+    </div>
+
     <div class="botones">
       <button id="btn-guardar">💾 Guardar</button>
       <button id="btn-backup">☁️ Copia de seguridad</button>
