@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "test": "node --test tests/database.test.js tests/ventas.test.js"
   },
   "keywords": [],
   "author": "Aula Verde",
