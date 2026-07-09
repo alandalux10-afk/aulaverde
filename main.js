@@ -1,23 +1,12 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const { inicializarDB, getDB } = require('./src/js/database')
+const { getRutaDescargas } = require('./src/js/rutas')
 const { importarProductos } = require('./src/js/importar-productos')
 const { guardarVenta } = require('./src/js/ventas')
 const { imprimirTicket } = require('./src/js/impresora')
 const { imprimirFactura } = require('./src/js/factura')
 let idVentaModificar = null
-
-// ─── Helper: obtener ruta de descargas configurada ───────────────────────────
-function getRutaDescargas() {
-  const fs = require('fs')
-  const db = getDB()
-  const result = db.exec('SELECT ruta_descargas FROM CONFIGURACION WHERE id_configuracion = 1')
-  const ruta = (result.length && result[0].values[0][0])
-    ? result[0].values[0][0]
-    : 'C:\\AulaVerde\\descargas'
-  if (!fs.existsSync(ruta)) fs.mkdirSync(ruta, { recursive: true })
-  return ruta
-}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -337,78 +326,9 @@ ipcMain.handle('reimprimir-ticket', async (event, idVenta) => {
   }
 })
 
-ipcMain.handle('obtener-configuracion', () => {
-  const db = getDB()
-  const { descifrar } = require('./src/js/database')
-  const result = db.exec('SELECT * FROM CONFIGURACION WHERE id_configuracion = 1')
-  if (!result.length || !result[0].values.length) return null
-  const cols = result[0].columns
-  const cfg = {}
-  result[0].values[0].forEach((val, i) => cfg[cols[i]] = val)
-  cfg.api_key_anthropic = descifrar(cfg.api_key_anthropic)
-  cfg.smtp_password = descifrar(cfg.smtp_password)
-  return cfg
-})
-
-ipcMain.handle('guardar-configuracion', (event, datos) => {
-  try {
-    const db = getDB()
-    const { guardarDB, cifrar } = require('./src/js/database')
-    db.run(
-      'UPDATE CONFIGURACION SET nombre_tienda=?, razon_social=?, nif_vendedor=?, direccion=?, telefono=?, email=?, impresora_ticket=?, impresora_factura=?, api_key_anthropic=?, puntos_euros_por_punto=?, puntos_valor_canje=?, smtp_host=?, smtp_puerto=?, smtp_usuario=?, smtp_password=?, smtp_email_remitente=?, ruta_descargas=?, ruta_backup_bd=?, ruta_backup_facturas=? WHERE id_configuracion=1',
-      [
-        datos.nombre_tienda,
-        datos.razon_social,
-        datos.nif_vendedor,
-        datos.direccion,
-        datos.telefono,
-        datos.email,
-        datos.impresora_ticket,
-        datos.impresora_factura,
-        cifrar(datos.api_key_anthropic),
-        datos.puntos_euros_por_punto,
-        datos.puntos_valor_canje,
-        datos.smtp_host,
-        datos.smtp_puerto,
-        datos.smtp_usuario,
-        cifrar(datos.smtp_password),
-        datos.smtp_email_remitente,
-        datos.ruta_descargas,
-        datos.ruta_backup_bd,
-        datos.ruta_backup_facturas
-      ]
-    )
-    guardarDB()
-    return { ok: true }
-  } catch (e) {
-    return { ok: false, mensaje: e.message }
-  }
-})
-
-ipcMain.handle('seleccionar-carpeta-descargas', async (event) => {
-  const { dialog } = require('electron')
-  const win = BrowserWindow.fromWebContents(event.sender)
-  const { filePaths, canceled } = await dialog.showOpenDialog(win, {
-    title: 'Seleccionar carpeta de descargas',
-    properties: ['openDirectory', 'createDirectory']
-  })
-  if (canceled || !filePaths || filePaths.length === 0) return null
-  return filePaths[0]
-})
-
-ipcMain.handle('abrir-configuracion', () => {
-  const win = new BrowserWindow({
-    width: 680,
-    height: 700,
-    title: 'Configuración - Aula Verde',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: false,
-      contextIsolation: true
-    }
-  })
-  win.loadFile('src/html/configuracion.html')
-})
+// ─── MÓDULO CONFIGURACIÓN ────────────────────────────────────────────────────
+// (extraído a src/handlers/configuracion.js — misma lógica, otro archivo)
+require('./src/handlers/configuracion').registrar(ipcMain, BrowserWindow)
 
 ipcMain.handle('abrir-modificar-venta', (event, idVenta) => {
   idVentaModificar = idVenta
@@ -688,59 +608,7 @@ ipcMain.handle('abrir-vista-previa', async (event, idVenta, tipoDocumento) => {
   }
 })
 
-ipcMain.handle('hacer-backup', () => {
-  try {
-    const fs = require('fs')
-    const pathMod = require('path')
-    const { obtenerRutaBD } = require('./src/js/database')
-    const ahora = new Date()
-    const año = ahora.getFullYear()
-    const mes = String(ahora.getMonth() + 1).padStart(2, '0')
-    const dia = String(ahora.getDate()).padStart(2, '0')
-    const sufijo = `${año}${mes}${dia}`
-    const origen = obtenerRutaBD()
-    const db = getDB()
-    const cfgResult = db.exec('SELECT ruta_backup_bd FROM CONFIGURACION WHERE id_configuracion = 1')
-    const carpetaDestino = (cfgResult.length && cfgResult[0].values[0][0]) || 'G:\\Mi unidad\\AulaVerde Backups'
-    const nombreArchivo = `aulaverde_${sufijo}.db`
-    const destino = pathMod.join(carpetaDestino, nombreArchivo)
-    if (!fs.existsSync(carpetaDestino)) {
-      fs.mkdirSync(carpetaDestino, { recursive: true })
-    }
-    fs.copyFileSync(origen, destino)
-    return { ok: true, ruta: destino }
-  } catch (e) {
-    return { ok: false, mensaje: e.message }
-  }
-})
 
-ipcMain.handle('exportar-csv', () => {
-  try {
-    const db = getDB()
-    const fs = require('fs')
-    const pathMod = require('path')
-    const result = db.exec(`
-      SELECT p.codigo, p.nombre, p.familia, p.tipo_venta,
-      p.precio_venta, p.precio_coste, p.activo, t.porcentaje as iva
-      FROM PRODUCTOS p
-      JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
-      ORDER BY p.codigo ASC
-    `)
-    if (!result.length) return { ok: false, mensaje: 'No hay productos' }
-    const cols = result[0].columns
-    let csv = cols.join(';') + '\n'
-    result[0].values.forEach(row => {
-      csv += row.map(v => (v === null ? '' : String(v).replace(/;/g, ','))).join(';') + '\n'
-    })
-    const ahora = new Date()
-    const sufijo = `${ahora.getFullYear()}${String(ahora.getMonth()+1).padStart(2,'0')}${String(ahora.getDate()).padStart(2,'0')}`
-    const ruta = pathMod.join(getRutaDescargas(), `productos_export_${sufijo}.csv`)
-    fs.writeFileSync(ruta, '\uFEFF' + csv, 'utf8')
-    return { ok: true, ruta }
-  } catch (e) {
-    return { ok: false, mensaje: e.message }
-  }
-})
 
 ipcMain.handle('obtener-resumen-periodo', (event, desde, hasta) => {
   const db = getDB()
