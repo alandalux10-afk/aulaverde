@@ -432,98 +432,9 @@ ipcMain.handle('modificar-venta', (event, idVenta, lineas) => {
   }
 })
 
-ipcMain.handle('obtener-productos-catalogo', (event, filtros) => {
-  const db = getDB()
-  let sql = `
-    SELECT p.id_producto, p.codigo, p.nombre, p.familia, p.tipo_venta,
-    p.precio_venta, p.precio_coste, p.activo, p.id_iva, t.porcentaje as porcentaje_iva
-    FROM PRODUCTOS p
-    JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
-    WHERE 1=1
-  `
-  const params = []
-  if (filtros.nombre) {
-    sql += ` AND (p.nombre LIKE ? OR p.codigo LIKE ?)`
-    params.push(`%${filtros.nombre}%`, `%${filtros.nombre}%`)
-  }
-  if (filtros.familia) {
-    sql += ` AND p.familia = ?`
-    params.push(filtros.familia)
-  }
-  if (filtros.activo !== '') {
-    sql += ` AND p.activo = ?`
-    params.push(filtros.activo)
-  }
-  sql += ' ORDER BY p.codigo ASC'
-  const result = db.exec(sql, params)
-  if (!result.length) return []
-  const cols = result[0].columns
-  return result[0].values.map(row => {
-    const obj = {}
-    cols.forEach((col, i) => obj[col] = row[i])
-    return obj
-  })
-})
-
-ipcMain.handle('crear-producto', (event, datos) => {
-  try {
-    const db = getDB()
-    const { guardarDB } = require('./src/js/database')
-    const existe = db.exec(`SELECT id_producto FROM PRODUCTOS WHERE codigo = ?`, [datos.codigo])
-    if (existe.length && existe[0].values.length) {
-      return { ok: false, mensaje: 'Ya existe un producto con el código ' + datos.codigo }
-    }
-    db.run(
-      'INSERT INTO PRODUCTOS (codigo, nombre, familia, tipo_venta, precio_venta, precio_coste, id_iva, activo) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
-      [datos.codigo, datos.nombre, datos.familia, datos.tipo_venta, datos.precio_venta, datos.precio_coste, datos.id_iva]
-    )
-    guardarDB()
-    return { ok: true }
-  } catch (e) {
-    return { ok: false, mensaje: e.message }
-  }
-})
-
-ipcMain.handle('editar-producto', (event, idProducto, datos) => {
-  try {
-    const db = getDB()
-    const { guardarDB } = require('./src/js/database')
-    db.run(
-      'UPDATE PRODUCTOS SET codigo=?, nombre=?, familia=?, tipo_venta=?, precio_venta=?, precio_coste=?, id_iva=? WHERE id_producto=?',
-      [datos.codigo, datos.nombre, datos.familia, datos.tipo_venta, datos.precio_venta, datos.precio_coste, datos.id_iva, idProducto]
-    )
-    guardarDB()
-    return { ok: true }
-  } catch (e) {
-    return { ok: false, mensaje: e.message }
-  }
-})
-
-ipcMain.handle('toggle-producto', (event, idProducto, nuevoEstado) => {
-  try {
-    const db = getDB()
-    const { guardarDB } = require('./src/js/database')
-    db.run('UPDATE PRODUCTOS SET activo=? WHERE id_producto=?', [nuevoEstado, idProducto])
-    guardarDB()
-    return { ok: true }
-  } catch (e) {
-    return { ok: false, mensaje: e.message }
-  }
-})
-
-ipcMain.handle('abrir-catalogo', () => {
-  const win = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    title: 'Catálogo de productos - Aula Verde',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: false,
-      contextIsolation: true
-    }
-  })
-  win.loadFile('src/html/catalogo.html')
-})
+// ─── MÓDULO CATÁLOGO ──────────────────────────────────────────────────────────
+// (extraído a src/handlers/catalogo.js — misma lógica, otro archivo)
+require('./src/handlers/catalogo').registrar(ipcMain, BrowserWindow)
 
 ipcMain.handle('abrir-nueva-venta', () => {
   const win = new BrowserWindow({
@@ -889,27 +800,7 @@ ipcMain.handle('obtener-siguiente-codigo-producto', () => {
   }
 })
 
-// Siguiente código para el catálogo general, respetando el formato real usado
-// desde la importación inicial (AV0001...AV0715): prefijo "AV" + 4 dígitos.
-// Es un handler distinto de obtener-siguiente-codigo-producto (usado solo al
-// crear un producto desde la revisión de una factura de proveedor) porque
-// ese otro busca códigos puramente numéricos y no vería estos códigos "AV...".
-ipcMain.handle('obtener-siguiente-codigo-catalogo', () => {
-  try {
-    const db = getDB()
-    const result = db.exec("SELECT codigo FROM PRODUCTOS WHERE codigo LIKE 'AV%'")
-    let maximo = 0
-    if (result.length) {
-      result[0].values.forEach(row => {
-        const numero = parseInt(String(row[0]).replace(/^AV/i, ''), 10)
-        if (!isNaN(numero) && numero > maximo) maximo = numero
-      })
-    }
-    return 'AV' + String(maximo + 1).padStart(4, '0')
-  } catch (e) {
-    return 'AV0001'
-  }
-})
+
 
 ipcMain.handle('obtener-id-iva-por-porcentaje', (event, porcentaje) => {
   const db = getDB()
@@ -1641,47 +1532,7 @@ ipcMain.handle('enviar-campana-email', async (event, clientes, asunto, cuerpo) =
 
 // ─── EXPORTAR CATÁLOGO EXCEL ────────────────────────────────────────────────
 
-ipcMain.handle('exportar-catalogo-excel', () => {
-  try {
-    const db = getDB()
-    const pathMod = require('path')
-    const XLSX = require('xlsx')
 
-    const result = db.exec(`
-      SELECT p.codigo, p.nombre, p.familia, p.tipo_venta,
-      p.precio_venta, p.precio_coste, t.porcentaje as iva,
-      CASE WHEN p.activo = 1 THEN 'Sí' ELSE 'No' END as activo
-      FROM PRODUCTOS p
-      JOIN TIPOS_IVA t ON p.id_iva = t.id_iva
-      ORDER BY p.codigo ASC
-    `)
-
-    if (!result.length || !result[0].values.length) {
-      return { ok: false, mensaje: 'No hay productos en el catálogo.' }
-    }
-
-    const filas = result[0].values.map(row => ({
-      'Código': row[0], 'Nombre': row[1], 'Familia': row[2]||'',
-      'Tipo venta': row[3], 'Precio venta (€)': Number(Number(row[4]).toFixed(2)),
-      'Precio coste (€)': row[5] ? Number(Number(row[5]).toFixed(2)) : '',
-      'IVA (%)': Number(row[6]), 'Activo': row[7]
-    }))
-
-    const wb = XLSX.utils.book_new()
-    const ws = XLSX.utils.json_to_sheet(filas)
-    ws['!cols'] = [{wch:12},{wch:35},{wch:18},{wch:12},{wch:16},{wch:16},{wch:10},{wch:8}]
-    XLSX.utils.book_append_sheet(wb, ws, 'Catálogo de productos')
-
-    const ahora = new Date()
-    const sufijo = `${ahora.getFullYear()}${String(ahora.getMonth()+1).padStart(2,'0')}${String(ahora.getDate()).padStart(2,'0')}`
-    const ruta = pathMod.join(getRutaDescargas(), `catalogo_productos_${sufijo}.xlsx`)
-    XLSX.writeFile(wb, ruta)
-    return { ok: true, ruta }
-
-  } catch (e) {
-    return { ok: false, mensaje: e.message }
-  }
-})
 // ─── MÓDULO CONSENTIMIENTO RGPD ──────────────────────────────────────────────
 // (extraído a src/handlers/consentimiento.js — misma lógica, otro archivo)
 require('./src/handlers/consentimiento').registrar(ipcMain, BrowserWindow)
