@@ -384,6 +384,16 @@ function migrarTablas() {
     db.run(`ALTER TABLE PROVEEDORES ADD COLUMN recargo_equivalencia BOOLEAN NOT NULL DEFAULT 0`)
   }
 
+  // Precio de coste del producto (para el beneficio estimado del resumen y
+  // la exportación del catálogo). Se descubrió al probar hoy el módulo de
+  // catálogo con una instalación limpia que esta columna nunca había
+  // quedado reflejada aquí — solo existía porque se añadió directamente a
+  // mano sobre la base de datos real en su momento, sin dejarlo en el
+  // código. Cualquier instalación nueva se habría quedado sin ella.
+  if (!columnaExiste('PRODUCTOS', 'precio_coste')) {
+    db.run(`ALTER TABLE PRODUCTOS ADD COLUMN precio_coste DECIMAL(10,2)`)
+  }
+
   // Añadir columna api_key_anthropic si no existe todavía
   if (!columnaExiste('CONFIGURACION', 'api_key_anthropic')) {
     db.run(`ALTER TABLE CONFIGURACION ADD COLUMN api_key_anthropic VARCHAR(255)`)
