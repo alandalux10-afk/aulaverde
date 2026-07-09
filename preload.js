@@ -21,6 +21,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 // en main.js — si se añade un handler nuevo allí, hay que añadirlo aquí también.
 const CANALES_INVOKE = [
   'abrir-campanas', 'abrir-catalogo', 'abrir-clientes', 'abrir-configuracion',
+  'activar-licencia',
   'abrir-consultas', 'abrir-documento-consentimiento', 'abrir-historico-compras',
   'abrir-modificar-venta', 'abrir-nueva-compra', 'abrir-nueva-venta',
   'abrir-proveedores', 'abrir-resumen', 'abrir-revision-compra',

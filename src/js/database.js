@@ -466,6 +466,14 @@ function migrarTablas() {
     db.run(`ALTER TABLE CLIENTES ADD COLUMN tipo_cliente VARCHAR(20) NOT NULL DEFAULT 'PARTICULAR'`)
   }
 
+  // Licencia de uso del producto. Se guarda la clave de licencia tal cual
+  // (el texto largo firmado); se vuelve a comprobar su validez cada vez que
+  // arranca la app en vez de fiarse de un simple "true/false" guardado, para
+  // que no se pueda desbloquear la app manipulando la base de datos.
+  if (!columnaExiste('CONFIGURACION', 'licencia_clave')) {
+    db.run(`ALTER TABLE CONFIGURACION ADD COLUMN licencia_clave TEXT`)
+  }
+
   // ===== Contador de numeración de documentos (tickets y facturas) =====
   // Antes, el siguiente número se calculaba leyendo la ÚLTIMA venta guardada
   // y sumando 1. Eso tiene un problema real: si esa venta se borra después

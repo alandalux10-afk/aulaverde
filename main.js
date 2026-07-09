@@ -92,9 +92,39 @@ function createWindow() {
   })
 }
 
+function abrirVentanaActivacion() {
+  const win = new BrowserWindow({
+    width: 560,
+    height: 480,
+    resizable: false,
+    title: 'Activación - Puntal TPV',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  })
+  win.loadFile('src/html/activacion.html')
+  return win
+}
+
 app.whenReady().then(async () => {
   await inicializarDB()
-  createWindow()
+
+  const { verificarLicencia } = require('./src/js/licencia')
+  const db = getDB()
+  const cfgLicencia = db.exec('SELECT licencia_clave FROM CONFIGURACION WHERE id_configuracion = 1')
+  const claveGuardada = cfgLicencia.length && cfgLicencia[0].values[0][0]
+  const estado = verificarLicencia(claveGuardada)
+
+  if (estado.valida) {
+    createWindow()
+  } else {
+    // Licencia ausente, inválida o caducada: se bloquea el uso normal de la
+    // app y se muestra la pantalla de activación en su lugar.
+    abrirVentanaActivacion()
+  }
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
@@ -102,6 +132,29 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+// ─── MÓDULO LICENCIA ─────────────────────────────────────────────────────────
+
+ipcMain.handle('activar-licencia', (event, claveLicencia) => {
+  const { verificarLicencia } = require('./src/js/licencia')
+  const resultado = verificarLicencia(claveLicencia)
+
+  if (!resultado.valida) {
+    return { ok: false, motivo: resultado.motivo }
+  }
+
+  const db = getDB()
+  const { guardarDB } = require('./src/js/database')
+  db.run('UPDATE CONFIGURACION SET licencia_clave = ? WHERE id_configuracion = 1', [claveLicencia.trim()])
+  guardarDB()
+
+  // Licencia activada: se abre el TPV y se cierra la ventana de activación
+  createWindow()
+  const ventanaActivacion = BrowserWindow.fromWebContents(event.sender)
+  if (ventanaActivacion) ventanaActivacion.close()
+
+  return { ok: true, payload: resultado.payload }
 })
 
 ipcMain.handle('importar-productos', () => {

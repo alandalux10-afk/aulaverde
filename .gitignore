@@ -15,6 +15,11 @@ descargas/
 .env
 .env.local
 
+# Clave privada de licencias: NUNCA debe subirse a git. Con ella se pueden
+# fabricar licencias válidas para el producto — es la pieza más sensible
+# de todo el proyecto. Solo debe existir en el ordenador de Mario.
+herramientas/clave-privada.pem
+
 # Sistema
 appPOS80AMUSE
 npm

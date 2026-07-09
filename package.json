@@ -7,7 +7,7 @@
     "start": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "test": "node --test tests/database.test.js tests/ventas.test.js"
+    "test": "node --test tests/database.test.js tests/ventas.test.js tests/licencia.test.js"
   },
   "keywords": [],
   "author": "Aula Verde",
@@ -35,6 +35,7 @@
       "!data/**",
       "!descargas/**",
       "!dist/**",
+      "!herramientas/**",
       "!*.md",
       "!.gitignore",
       "!.git/**"
